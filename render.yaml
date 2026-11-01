@@ -1,0 +1,43 @@
+# Blueprint do Render: PostgreSQL + backend (API) + frontend (nginx), cada um em seu serviço.
+# Render → New → Blueprint → selecione este repositório.
+databases:
+  - name: arremate-db
+    plan: free
+    databaseName: leilao
+    user: leilao
+
+services:
+  - type: web
+    name: arremate-api
+    runtime: docker
+    plan: free
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: arremate-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: LEDGER_SIGNING_SECRET
+        generateValue: true
+      - key: PSEUDONYM_SECRET
+        generateValue: true
+      - key: SEED_ON_BOOT
+        value: 'true'
+
+  - type: web
+    name: arremate
+    runtime: docker
+    plan: free
+    dockerContext: ./frontend
+    dockerfilePath: ./frontend/Dockerfile
+    envVars:
+      # URL pública do backend, ex.: https://arremate-api.onrender.com
+      # (o Render pede o valor ao criar o Blueprint; confira a URL real do serviço arremate-api).
+      - key: BACKEND_URL
+        sync: false

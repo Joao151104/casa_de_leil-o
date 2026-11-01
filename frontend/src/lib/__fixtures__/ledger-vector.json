@@ -1,0 +1,38 @@
+{
+  "lotId": "00000000-0000-0000-0000-0000000000aa",
+  "publicKey": "809606972989d66220dec6db7982b52b63278a8f6967ef1c52aa13d97305b785",
+  "bids": [
+    {
+      "seq": 1,
+      "bidderTag": "L-AAAA1111",
+      "amountCents": 100000,
+      "createdAt": "2026-10-28T12:00:00.000Z",
+      "prevHash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "hash": "4c24a8b04abfc33fae7c17b1de9ba513d7febd9e549d4679f361622abd2bd36a",
+      "signature": "f48d28139f0b44e3cb2b38c195429f877f5f3081eaf95b229b1a358742202ed4ecc8f19fdd9c4227b668bb286232a939b670a4947e57353d312a5a01ce43ed0e"
+    },
+    {
+      "seq": 2,
+      "bidderTag": "L-BBBB2222",
+      "amountCents": 110000,
+      "createdAt": "2026-10-28T12:00:01.000Z",
+      "prevHash": "4c24a8b04abfc33fae7c17b1de9ba513d7febd9e549d4679f361622abd2bd36a",
+      "hash": "544bfe27804db6549a2e8305aadd6d06bd71de510b707998326101d1903447b3",
+      "signature": "777ce6fc21a5c57ee294bb8797e9433d26baaecb71efa0042f0548e68d3d5f92f4e3c3b0c56393756bcdf8ba02d5bbe782fd42d381cf7a84a9d386b32e74320b"
+    }
+  ],
+  "head": {
+    "bidCount": 2,
+    "headHash": "544bfe27804db6549a2e8305aadd6d06bd71de510b707998326101d1903447b3",
+    "headSignature": "7ba483751d463b458313b60ef2bdd86819176560daa10050993f25e0743a9cce4a0f86c87ea7c49c0bc78b4a660956085eabeb7ad54c239fb7213b28c59ed90c"
+  },
+  "receipt": {
+    "code": "TESTE12345",
+    "winnerTag": "L-BBBB2222",
+    "amountCents": 110000,
+    "bidCount": 2,
+    "finalHash": "544bfe27804db6549a2e8305aadd6d06bd71de510b707998326101d1903447b3",
+    "issuedAt": "2026-10-28T13:00:00.000Z",
+    "signature": "b8d0bb45f7d04acbe4020042f2fb39b263c295ccb6f29d2ae2c95b3248a12cdcbe5bba49d645a239f081e25cf164914908c2f22ba3241f118abe9628aa032e05"
+  }
+}

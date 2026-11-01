@@ -1,0 +1,148 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+@import '@fontsource-variable/archivo/wdth.css';
+@import '@fontsource-variable/jetbrains-mono';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Direção: catálogo de leilão impresso. Tinta preta sobre papel branco, linhas finas,
+ * cantos quase retos e um único acento ("signal", laranja internacional) reservado
+ * para o que está ao vivo e para a ação de dar lance. Números sempre em mono.
+ */
+:root {
+  --radius: 0.25rem;
+  --background: #ffffff;
+  --foreground: #0c0c0c;
+  --card: #ffffff;
+  --card-foreground: #0c0c0c;
+  --popover: #ffffff;
+  --popover-foreground: #0c0c0c;
+  --primary: #0c0c0c;
+  --primary-foreground: #ffffff;
+  --secondary: #f4f4f5;
+  --secondary-foreground: #0c0c0c;
+  --muted: #f4f4f5;
+  --muted-foreground: #6b6b70;
+  --accent: #f4f4f5;
+  --accent-foreground: #0c0c0c;
+  --destructive: #d92d20;
+  --border: #e4e4e7;
+  --input: #d4d4d8;
+  --ring: #0c0c0c;
+  --signal: #ff4f00;
+  --signal-foreground: #ffffff;
+  --success: #067647;
+  --success-foreground: #ffffff;
+}
+
+.dark {
+  --background: #0b0b0c;
+  --foreground: #f2f2f2;
+  --card: #111113;
+  --card-foreground: #f2f2f2;
+  --popover: #141416;
+  --popover-foreground: #f2f2f2;
+  --primary: #f2f2f2;
+  --primary-foreground: #0b0b0c;
+  --secondary: #1c1c1f;
+  --secondary-foreground: #f2f2f2;
+  --muted: #18181b;
+  --muted-foreground: #9a9aa2;
+  --accent: #1f1f23;
+  --accent-foreground: #f2f2f2;
+  --destructive: #f97066;
+  --border: #26262a;
+  --input: #34343a;
+  --ring: #f2f2f2;
+  --signal: #ff6a26;
+  --signal-foreground: #0b0b0c;
+  --success: #47cd89;
+  --success-foreground: #0b0b0c;
+}
+
+@theme inline {
+  --font-sans: 'Archivo Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
+  --font-heading: var(--font-sans);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-signal: var(--signal);
+  --color-signal-foreground: var(--signal-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+    color-scheme: light;
+    font-feature-settings: 'ss01', 'tnum' 0;
+  }
+  html.dark {
+    color-scheme: dark;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+/* Títulos na largura expandida da Archivo. */
+@utility font-display {
+  font-family: var(--font-sans);
+  font-stretch: 125%;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* Rótulo de catálogo: mono, pequeno, caixa alta. */
+@utility label-mono {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  line-height: 1rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+@keyframes flash {
+  from {
+    background-color: color-mix(in oklch, var(--signal) 14%, transparent);
+  }
+  to {
+    background-color: transparent;
+  }
+}
+.animate-flash {
+  animation: flash 1.6s ease-out;
+}
