@@ -2,7 +2,9 @@
 
 Casa de leilões de obras de arte com lances ao vivo. O leiloeiro monta lotes a partir de obras do acervo público do **The Metropolitan Museum of Art**, e os licitantes depositam saldo simulado e disputam cada lote em tempo real. Ao final, o vencedor recebe um comprovante assinado que pode ser compartilhado por link. Qualquer pessoa, mesmo sem login, pode auditar o histórico de lances de um lote e verificar, inclusive no próprio navegador, que ele não foi adulterado.
 
-> **Deploy:** _adicione aqui o link público após o deploy_ (ver [Deploy](#deploy))
+> **Deploy:** https://arremate-a5vs.onrender.com
+>
+> Está hospedado no plano gratuito do Render, que hiberna os serviços depois de uns 15 minutos sem acesso. Por isso o primeiro acesso pode levar cerca de 1 minuto: a página pode ficar carregando ou mostrar um erro enquanto o servidor acorda. É só esperar um pouco e recarregar. Frontend e backend hibernam separadamente, então pode ser preciso esperar mais uma vez no primeiro login ou na primeira listagem de lotes. Depois que acordam, funcionam normalmente. Mais detalhes em [Limitações](#limitações).
 
 ### Contas de demonstração (senha `demo1234` para todas)
 
