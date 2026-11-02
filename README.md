@@ -12,7 +12,7 @@ Casa de leilões de obras de arte com lances ao vivo. O leiloeiro monta lotes a 
 | Licitante | `ana@demo.com` | R$ 50.000 de saldo, liderando "Sunflowers" |
 | Licitante | `bruno@demo.com` | R$ 30.000 de saldo, liderando "Two Dancers" e vencedor do lote do gato egípcio (tem comprovante) |
 
-A tela de login tem botões de acesso rápido para cada conta. Para ver a disputa ao vivo, abra duas janelas (uma anônima) com Ana e Bruno na mesma sala de lote.
+Para ver a disputa ao vivo, abra duas janelas (uma anônima) com Ana e Bruno na mesma sala de lote.
 
 ---
 
@@ -200,21 +200,7 @@ O que é coberto:
 - **Contrato front × back**: um vetor de teste (`ledger-vector.json`, presente nos dois projetos) fixa hashes e assinaturas. O backend confere que gera exatamente esses valores, e o frontend confere que a verificação no navegador os aceita e rejeita qualquer alteração. Se o formato canônico mudar de um lado, um dos testes falha.
 - **Front**: conversão de valores digitados em reais (`1.234,56`) e formatação das contagens.
 
----
 
-## Deploy
-
-O repositório inclui um **Blueprint do Render** (`render.yaml`) que cria três recursos: o PostgreSQL, o backend (`arremate-api`) e o frontend (`arremate`), cada serviço com seu Dockerfile:
-
-1. Suba o repositório para o GitHub.
-2. No [Render](https://render.com): **New → Blueprint** → selecione o repositório.
-3. O Render pede o valor de `BACKEND_URL` do frontend. Informe a URL pública do backend, normalmente `https://arremate-api.onrender.com`. Se o nome estiver ocupado, o Render adiciona um sufixo; confira a URL real do serviço `arremate-api` depois de criado e ajuste em *Environment* se for diferente.
-4. **Apply** e aguarde o build. No primeiro boot, o backend roda as migrações e cria os dados de demonstração.
-5. O link público da aplicação é o do serviço **`arremate`** (frontend).
-
-Os Dockerfiles são genéricos e funcionam em Railway, Fly.io e similares. O backend precisa de `DATABASE_URL`, `JWT_SECRET`, `LEDGER_SIGNING_SECRET`, `PSEUDONYM_SECRET` e `SEED_ON_BOOT=true`; o frontend, de `BACKEND_URL`. Com mais de uma instância do backend, o job de liquidação continua seguro (`SKIP LOCKED`), mas o Socket.IO precisaria de um adapter compartilhado, como Redis.
-
----
 
 ## Decisões técnicas
 

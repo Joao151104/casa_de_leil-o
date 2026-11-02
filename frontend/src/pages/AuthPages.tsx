@@ -50,12 +50,6 @@ function AuthShell({ children }: { children: ReactNode }) {
   );
 }
 
-const DEMO = [
-  { label: 'Leiloeiro', email: 'leiloeiro@demo.com' },
-  { label: 'Ana', email: 'ana@demo.com' },
-  { label: 'Bruno', email: 'bruno@demo.com' },
-];
-
 export function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -65,12 +59,12 @@ export function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const submit = async (e: FormEvent, creds = { email, password }) => {
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
     setBusy(true);
     setError(null);
     try {
-      const user = await login(creds.email, creds.password);
+      const user = await login(email, password);
       navigate(from ?? homeFor(user), { replace: true });
     } catch (err) {
       setError((err as Error).message);
@@ -103,17 +97,6 @@ export function LoginPage() {
           Cadastre-se
         </Link>
       </p>
-
-      <div className="mt-10 border-t pt-5">
-        <p className="label-mono text-muted-foreground">Contas de demonstração · senha demo1234</p>
-        <div className="mt-3 grid grid-cols-3 gap-2">
-          {DEMO.map((d) => (
-            <Button key={d.email} variant="outline" size="sm" disabled={busy} onClick={(e) => submit(e, { email: d.email, password: 'demo1234' })}>
-              {d.label}
-            </Button>
-          ))}
-        </div>
-      </div>
     </AuthShell>
   );
 }
