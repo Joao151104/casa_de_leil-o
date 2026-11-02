@@ -101,7 +101,7 @@ export function Layout() {
     <div className="flex min-h-dvh flex-col">
       <header className="sticky top-0 z-30 border-b bg-background/90 backdrop-blur-md">
         <div className="mx-auto flex h-14 max-w-[1400px] items-center gap-8 px-5 sm:px-8">
-          <Link to="/" aria-label="Arremate — página inicial">
+          <Link to="/" aria-label="Arremate, página inicial">
             <Wordmark />
           </Link>
           <nav className="hidden items-center gap-6 md:flex">{links}</nav>

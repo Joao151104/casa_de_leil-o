@@ -3,7 +3,7 @@ import type { Db } from '../db/pool.js';
 const MAX_BYTES = 8 * 1024 * 1024;
 
 /**
- * Baixa a imagem do item e guarda uma cópia no banco. Retorna null se não conseguir —
+ * Baixa a imagem do item e guarda uma cópia no banco. Retorna null se não conseguir:
  * nesse caso o lote usa a URL externa como fallback (a criação do lote não é bloqueada).
  */
 export async function storeRemoteImage(db: Db, url: string): Promise<string | null> {

@@ -5,7 +5,7 @@ import { verifyInBrowser } from './ledger';
 /**
  * O vetor é gerado pelo backend (backend/tests/fixtures/ledger-vector.json, validado lá pelo
  * ledger-vector.test.ts). Aqui garantimos que a verificação no navegador aceita exatamente
- * o que o servidor assina — e rejeita qualquer alteração.
+ * o que o servidor assina, e rejeita qualquer alteração.
  */
 const input = () => structuredClone({ lotId: vector.lotId, bids: vector.bids, head: vector.head, receipt: vector.receipt, publicKey: vector.publicKey });
 

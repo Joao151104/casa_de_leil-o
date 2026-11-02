@@ -1,4 +1,4 @@
-# Arremate — Frontend
+# Arremate (frontend)
 
 SPA em React 19 + Vite + TypeScript com componentes do [shadcn/ui](https://ui.shadcn.com) (Radix + Tailwind CSS 4).
 

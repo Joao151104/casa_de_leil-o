@@ -83,7 +83,7 @@ export async function createLot(sellerId: string, input: CreateLotInput) {
 
 /**
  * Cancela um lote. Sem lances: cancelamento direto. Com lances (opcional do desafio): exige
- * confirmação explícita e faz o estorno automático — como o saldo do líder estava apenas
+ * confirmação explícita e faz o estorno automático. Como o saldo do líder estava apenas
  * comprometido (nunca debitado), mudar o status para 'cancelled' já o devolve ao disponível.
  */
 export async function cancelLot(sellerId: string, lotId: string, opts: { reason?: string; confirmRefund?: boolean }) {

@@ -1,4 +1,4 @@
-# Arremate — Casa de Leilões Online
+# Arremate - Casa de Leilões Online
 
 Casa de leilões de obras de arte com lances ao vivo. O leiloeiro monta lotes a partir de obras do acervo público do **The Metropolitan Museum of Art**, e os licitantes depositam saldo simulado e disputam cada lote em tempo real. Ao final, o vencedor recebe um comprovante assinado que pode ser compartilhado por link. Qualquer pessoa, mesmo sem login, pode auditar o histórico de lances de um lote e verificar, inclusive no próprio navegador, que ele não foi adulterado.
 
@@ -25,7 +25,7 @@ A tela de login tem botões de acesso rápido para cada conta. Para ver a disput
 - [Deploy](#deploy)
 - [Decisões técnicas](#decisões-técnicas)
 - [API](#api)
-- [Comportamentos que valem conhecer / limitações](#comportamentos-que-valem-conhecer--limitações)
+- [Limitações](#limitações)
 
 ---
 
@@ -53,7 +53,7 @@ A tela de login tem botões de acesso rápido para cada conta. Para ver a disput
 - **Busca e filtro de lotes**: busca por título, artista, técnica e cultura, além de ordenação (terminando antes, mais recentes, preço).
 - **Cancelamento com estorno automático**: lotes sem lances são cancelados direto. Lotes com lances exigem uma confirmação explícita e o valor comprometido do líder volta na hora para o saldo disponível. Os licitantes afetados recebem notificação.
 - **Docker Compose**: `docker compose up --build` sobe banco, backend e frontend, cada um em seu container.
-- **Testes automatizados**: 43 testes, entre unitários, de integração com Postgres real, de concorrência e de contrato entre front e back.
+- **Testes automatizados**: unitários, de integração com Postgres real, de concorrência e de contrato entre front e back.
 - **Dark mode**: tema claro/escuro com os tokens do shadcn/ui, que respeita a preferência do sistema e fica salvo.
 
 Extras: verificação criptográfica independente no navegador, notificações em tempo real (superado, arrematado, vendido, estornado), layout responsivo para celular e sincronização do relógio com o servidor nas contagens regressivas.
@@ -93,44 +93,6 @@ O projeto tem dois projetos independentes, cada um com seu `package.json`, lockf
 ```
 
 O nginx do frontend repassa `/api` e `/socket.io` para o backend. Para o navegador, tudo fica na mesma origem, sem CORS e sem URLs de API embutidas no build. Em desenvolvimento, o Vite faz o mesmo proxy.
-
-```
-.
-├── backend/
-│   ├── migrations/001_init.sql      # schema (aplicado automaticamente no boot)
-│   ├── src/
-│   │   ├── lib/ledger.ts            # cadeia de hashes + assinaturas Ed25519
-│   │   ├── lib/pseudonym.ts         # pseudônimo do licitante por lote
-│   │   ├── modules/bids/            # regras de lance (puras) + registro com locks
-│   │   ├── modules/lots/            # lotes, vitrine, painel, liquidação
-│   │   ├── modules/wallet/          # saldo total / comprometido / disponível
-│   │   ├── modules/audit/verify.ts  # verificação de integridade
-│   │   ├── modules/catalog/         # cliente do Met, cache, circuit breaker
-│   │   ├── realtime.ts              # Socket.IO (salas por lote, vitrine e usuário)
-│   │   └── db/seed.ts               # dados de demonstração
-│   ├── tests/
-│   └── Dockerfile
-├── frontend/
-│   ├── components.json              # configuração do shadcn/ui
-│   ├── src/
-│   │   ├── components/ui/           # componentes do shadcn/ui (gerados pelo CLI)
-│   │   ├── components/app/          # componentes da aplicação montados sobre eles
-│   │   ├── pages/                   # vitrine, sala, painel, carteira, auditoria…
-│   │   └── lib/ledger.ts            # verificação independente no navegador
-│   ├── nginx/                       # template do nginx (SPA + proxy)
-│   └── Dockerfile
-├── db-init/                         # cria o banco de testes no Postgres do compose
-├── docker-compose.yml               # db + backend + frontend
-└── render.yaml                      # deploy no Render (3 serviços)
-```
-
-### Interface
-
-**Direção visual: catálogo de leilão impresso.** Preto sobre branco, linhas finas no lugar de cards com sombra, cantos quase retos e um único acento (laranja-sinal) reservado para o que está **ao vivo** e para a ação de **dar lance**. Cada lote tem número de catálogo ("Lote 004"), e a vitrine abre com o lote que encerra primeiro em destaque.
-
-- **Tipografia:** [Archivo](https://fonts.google.com/specimen/Archivo) (grotesca com eixo de largura: expandida nos títulos, normal no texto) e [JetBrains Mono](https://www.jetbrains.com/lp/mono/) em tudo que é número: preços, contagens, nº do lote, hashes. As fontes são servidas localmente via Fontsource.
-- **Componentes:** [shadcn/ui](https://ui.shadcn.com), instalados pelo CLI oficial (`npx shadcn@latest init`/`add`, estilo `radix-nova`): Button, Input, Label, Textarea, Checkbox, Select, Tabs (variante sublinhada), Alert, AlertDialog, Sheet (menu mobile), DropdownMenu (menu da conta e ações dos lotes), Table (painel, extrato, auditoria), Tooltip, Skeleton e Sonner (notificações).
-- **Tema:** variáveis padrão do shadcn (`--primary`, `--muted-foreground`…) mais `--signal` e `--success`, nas versões clara e escura, em [`frontend/src/styles.css`](frontend/src/styles.css).
 
 ---
 
@@ -216,8 +178,8 @@ Fora de produção, os segredos têm valores padrão de desenvolvimento.
 ## Testes automatizados
 
 ```bash
-cd backend && npm test     # 28 testes
-cd frontend && npm test    # 15 testes
+cd backend && npm test
+cd frontend && npm test
 ```
 
 Os testes de integração do backend precisam de um PostgreSQL. Por padrão usam `postgres://postgres:postgres@localhost:5432/leilao_test`, o banco que o `docker compose up db -d` já cria. Para usar outro, crie um banco vazio e defina `TEST_DATABASE_URL`:
@@ -229,7 +191,7 @@ TEST_DATABASE_URL=postgres://localhost:5432/leilao_test npm test
 
 O banco de testes é apagado a cada teste. Não aponte para o banco de desenvolvimento.
 
-O que é coberto (43 testes):
+O que é coberto:
 
 - **Regras de lance** (unitários): lance inicial, incremento, janela de início/fim, líder não cobre o próprio lance, saldo, anti-sniping.
 - **Prova de adulteração** (unitários): detecção de valor alterado, lance removido no meio, lance removido no fim, assinatura forjada, lance inserido e troca de licitante.
@@ -396,7 +358,7 @@ Eventos Socket.IO: o cliente emite `lot:watch` / `lot:unwatch` / `showcase:watch
 
 ---
 
-## Comportamentos que valem conhecer / limitações
+## Limitações
 
 - **Plano gratuito do Render hiberna** os serviços após ~15 min sem acesso (frontend e backend hibernam separadamente). O primeiro acesso depois disso pode levar ~1 min. Enquanto o serviço está hibernado o job de liquidação não roda: um lote que venceu nesse período aparece como "Encerrado · liquidando" e é liquidado assim que o servidor acorda. Lances nunca são aceitos após o fim, porque a validação usa o horário do lote e não o job.
 - **Os dados de demonstração usam datas relativas ao primeiro boot.** Os lotes ao vivo com lances encerram 30 dias depois, e os agendados abrem em 1 e 2 dias. Para renovar: `npm run db:reset`.

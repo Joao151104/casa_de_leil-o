@@ -20,7 +20,7 @@ export interface PublicBid {
  * Registra um lance. Concorrência: a linha do lote é travada (FOR UPDATE) e só então a
  * carteira do licitante; todos os fluxos seguem a ordem lote → carteira, evitando deadlocks.
  * Lances simultâneos no mesmo lote são serializados e cada um é validado contra o estado
- * mais recente — o segundo de dois lances iguais é recusado por "abaixo do mínimo".
+ * mais recente; o segundo de dois lances iguais é recusado por "abaixo do mínimo".
  */
 export async function placeBid(user: AuthUser, lotId: string, amountCents: number) {
   if (user.role !== 'bidder') throw new AppError(403, 'ROLE_NOT_ALLOWED', 'Leiloeiros não podem dar lances.');

@@ -20,7 +20,7 @@ export interface SearchResult {
 }
 
 const OUTAGE_WARNING =
-  'A API do museu está instável no momento. Exibindo resultados salvos anteriormente — a criação de lotes continua funcionando.';
+  'A API do museu está instável no momento. Exibindo resultados salvos anteriormente. A criação de lotes continua funcionando.';
 
 /** Objetos sem imagem também são cacheados (marcador `unavailable`) para não serem buscados de novo. */
 type CachedItem = { item: CatalogItem | null; fresh: boolean };

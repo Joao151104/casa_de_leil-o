@@ -1,4 +1,4 @@
-# Arremate — Backend
+# Arremate (backend)
 
 API REST + Socket.IO da casa de leilões (Node.js, Express 5, TypeScript, PostgreSQL).
 

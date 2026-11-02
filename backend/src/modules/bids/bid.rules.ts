@@ -37,7 +37,7 @@ export function evaluateBid(lot: RuleLot, bidderId: string, amountCents: number,
   }
   if (lot.status === 'settled' || now >= lot.endsAt) return reject('LOT_ENDED', 'Este lote já foi encerrado.');
   if (lot.leaderId === bidderId) {
-    return reject('ALREADY_WINNING', 'Você já está ganhando este lote — não é possível cobrir o próprio lance.');
+    return reject('ALREADY_WINNING', 'Você já está ganhando este lote. Não dá para cobrir o próprio lance.');
   }
   const minimum = minimumBid(lot);
   if (amountCents < minimum) {
