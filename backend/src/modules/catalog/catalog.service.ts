@@ -32,7 +32,9 @@ async function getCachedItems(ids: string[]): Promise<Map<string, CachedItem>> {
        FROM catalog_items WHERE source = 'met' AND external_id = ANY($1)`,
     [ids, config.catalog.itemTtlMs],
   );
-  return new Map(rows.map((r) => [r.external_id, { item: r.data.unavailable ? null : (r.data as CatalogItem), fresh: r.fresh }]));
+  return new Map(
+    rows.map((r) => [r.external_id, { item: r.data.unavailable ? null : (r.data as CatalogItem), fresh: r.fresh }]),
+  );
 }
 
 async function cacheUnavailable(externalId: string) {
@@ -113,7 +115,13 @@ export async function searchCatalog(rawQuery: string, page = 1): Promise<SearchR
   );
   const cached = rows[0] as { external_ids: string[]; total: number; fresh: boolean } | undefined;
   if (cached?.fresh) {
-    return { items: await resolveItems(cached.external_ids), total: cached.total, page, pageSize: PAGE_SIZE, source: 'cache' };
+    return {
+      items: await resolveItems(cached.external_ids),
+      total: cached.total,
+      page,
+      pageSize: PAGE_SIZE,
+      source: 'cache',
+    };
   }
 
   try {
@@ -154,7 +162,11 @@ export async function getCatalogItem(externalId: string): Promise<CatalogItem> {
   } catch (err) {
     if (err instanceof AppError) throw err;
     if (cached?.item) return cached.item;
-    throw new AppError(503, 'CATALOG_UNAVAILABLE', 'A API do museu está indisponível e este item ainda não está em cache. Tente novamente em instantes.');
+    throw new AppError(
+      503,
+      'CATALOG_UNAVAILABLE',
+      'A API do museu está indisponível e este item ainda não está em cache. Tente novamente em instantes.',
+    );
   }
 }
 

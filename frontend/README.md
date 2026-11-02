@@ -7,6 +7,8 @@ npm install
 npm run dev     # http://localhost:5173 (proxy de /api e /socket.io para http://localhost:3333)
 npm test
 npm run build   # gera dist/
+npm run lint    # oxlint
+npm run format  # prettier
 ```
 
 Novos componentes do shadcn: `npx shadcn@latest add <componente>` (configuração em `components.json`).

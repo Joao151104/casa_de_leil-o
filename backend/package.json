@@ -10,7 +10,10 @@
     "typecheck": "tsc --noEmit",
     "db:migrate": "tsx src/db/migrate.ts",
     "db:seed": "tsx src/db/seed.ts",
-    "db:reset": "tsx src/db/seed.ts --reset"
+    "db:reset": "tsx src/db/seed.ts --reset",
+    "lint": "oxlint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -30,6 +33,8 @@
     "@types/node": "^26.6.5",
     "@types/pg": "^8.23.1",
     "@types/supertest": "^7.2.1",
+    "oxlint": "^1.90.0",
+    "prettier": "^3.9.10",
     "supertest": "^7.3.1",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",

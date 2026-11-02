@@ -26,7 +26,11 @@ receiptsRouter.get('/:code', async (req, res) => {
     issuedAt: r.issued_at as Date,
   };
   res.json({
-    receipt: { ...fields, signature: r.signature, signatureValid: verifySignature(canonicalReceipt(fields), r.signature) },
+    receipt: {
+      ...fields,
+      signature: r.signature,
+      signatureValid: verifySignature(canonicalReceipt(fields), r.signature),
+    },
     lot: toLotDto(lot!),
     publicKey: publicKeyHex,
   });

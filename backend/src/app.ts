@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import { config } from './config.js';
 import { pool } from './db/pool.js';
 import { AppError } from './lib/errors.js';
+import { createLogger } from './lib/logger.js';
 import { auditRouter } from './modules/audit/audit.routes.js';
 import { optionalAuth } from './modules/auth/auth.js';
 import { authRouter } from './modules/auth/auth.routes.js';
@@ -13,6 +14,21 @@ import { lotsRouter } from './modules/lots/lot.routes.js';
 import { meRouter } from './modules/lots/me.routes.js';
 import { receiptsRouter } from './modules/receipts/receipts.routes.js';
 import { walletRouter } from './modules/wallet/wallet.routes.js';
+
+const log = createLogger('api');
+
+const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
+  if (err instanceof AppError) {
+    res.status(err.status).json({ error: { code: err.code, message: err.message, ...err.details } });
+    return;
+  }
+  if (err?.type === 'entity.parse.failed') {
+    res.status(400).json({ error: { code: 'INVALID_JSON', message: 'JSON inválido.' } });
+    return;
+  }
+  log.error('erro não tratado', err);
+  res.status(500).json({ error: { code: 'INTERNAL', message: 'Erro inesperado. Tente novamente.' } });
+};
 
 export function createApp() {
   const app = express();
@@ -54,18 +70,6 @@ export function createApp() {
     throw new AppError(404, 'NOT_FOUND', 'Rota não encontrada.');
   });
 
-  const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
-    if (err instanceof AppError) {
-      res.status(err.status).json({ error: { code: err.code, message: err.message, ...err.details } });
-      return;
-    }
-    if (err?.type === 'entity.parse.failed') {
-      res.status(400).json({ error: { code: 'INVALID_JSON', message: 'JSON inválido.' } });
-      return;
-    }
-    console.error(err);
-    res.status(500).json({ error: { code: 'INTERNAL', message: 'Erro inesperado. Tente novamente.' } });
-  };
   app.use(errorHandler);
   return app;
 }

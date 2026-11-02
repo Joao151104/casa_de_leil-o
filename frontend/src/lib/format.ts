@@ -23,6 +23,8 @@ export const formatDateTime = (iso: string | Date) => dateTime.format(new Date(i
 export const formatTime = (iso: string | Date) => timeWithSeconds.format(new Date(iso));
 export const formatDay = (iso: string | Date) => dayMonth.format(new Date(iso));
 
+const pad = (n: number) => String(n).padStart(2, '0');
+
 export function formatCountdown(ms: number): string {
   if (ms <= 0) return '00:00:00';
   const total = Math.floor(ms / 1000);
@@ -30,7 +32,6 @@ export function formatCountdown(ms: number): string {
   const h = Math.floor((total % 86400) / 3600);
   const m = Math.floor((total % 3600) / 60);
   const s = total % 60;
-  const pad = (n: number) => String(n).padStart(2, '0');
   return days > 0 ? `${days}d ${pad(h)}h ${pad(m)}m` : `${pad(h)}:${pad(m)}:${pad(s)}`;
 }
 

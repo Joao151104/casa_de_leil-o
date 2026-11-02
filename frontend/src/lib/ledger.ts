@@ -21,8 +21,10 @@ function verifySig(message: string, signatureHex: string, publicKeyHex: string) 
   }
 }
 
-export const canonicalBid = (lotId: string, b: Pick<AuditBid, 'seq' | 'bidderTag' | 'amountCents' | 'createdAt' | 'prevHash'>) =>
-  ['bid-v1', lotId, b.seq, b.bidderTag, b.amountCents, new Date(b.createdAt).toISOString(), b.prevHash].join('|');
+export const canonicalBid = (
+  lotId: string,
+  b: Pick<AuditBid, 'seq' | 'bidderTag' | 'amountCents' | 'createdAt' | 'prevHash'>,
+) => ['bid-v1', lotId, b.seq, b.bidderTag, b.amountCents, new Date(b.createdAt).toISOString(), b.prevHash].join('|');
 
 export interface BidCheck {
   seq: number;
@@ -46,7 +48,7 @@ export function verifyInBrowser(input: {
   publicKey: string;
 }): ClientVerification {
   const { lotId, publicKey } = input;
-  const sorted = [...input.bids].sort((a, b) => a.seq - b.seq);
+  const sorted = input.bids.toSorted((a, b) => a.seq - b.seq);
   let prevHash = GENESIS_HASH;
   const bids = sorted.map((bid, i) => {
     const check: BidCheck = {
@@ -64,13 +66,23 @@ export function verifyInBrowser(input: {
     head.bidCount === sorted.length &&
     head.headHash === prevHash &&
     (head.bidCount === 0 ||
-      (!!head.headSignature && verifySig(['head-v1', lotId, head.bidCount, head.headHash].join('|'), head.headSignature, publicKey)));
+      (!!head.headSignature &&
+        verifySig(['head-v1', lotId, head.bidCount, head.headHash].join('|'), head.headSignature, publicKey)));
 
   let receiptOk: boolean | null = null;
   if (input.receipt) {
     const r = input.receipt;
     const last = sorted.at(-1);
-    const payload = ['receipt-v1', r.code, lotId, r.winnerTag, r.amountCents, r.bidCount, r.finalHash, new Date(r.issuedAt).toISOString()].join('|');
+    const payload = [
+      'receipt-v1',
+      r.code,
+      lotId,
+      r.winnerTag,
+      r.amountCents,
+      r.bidCount,
+      r.finalHash,
+      new Date(r.issuedAt).toISOString(),
+    ].join('|');
     receiptOk =
       verifySig(payload, r.signature, publicKey) &&
       !!last &&

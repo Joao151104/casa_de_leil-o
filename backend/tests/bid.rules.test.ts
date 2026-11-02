@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { evaluateBid, extendedEnd, insufficientFunds, minimumBid, type RuleLot } from '../src/modules/bids/bid.rules.js';
+import {
+  evaluateBid,
+  extendedEnd,
+  insufficientFunds,
+  minimumBid,
+  type RuleLot,
+} from '../src/modules/bids/bid.rules.js';
 
 const now = new Date('2026-10-28T12:00:00Z');
 const lot = (overrides: Partial<RuleLot> = {}): RuleLot => ({
@@ -30,7 +36,9 @@ describe('regras de lance', () => {
   });
 
   it('só aceita lances entre início e fim', () => {
-    expect(evaluateBid(lot({ startsAt: new Date('2026-10-28T12:00:01Z') }), 'u1', 10_000, now)?.code).toBe('LOT_NOT_STARTED');
+    expect(evaluateBid(lot({ startsAt: new Date('2026-10-28T12:00:01Z') }), 'u1', 10_000, now)?.code).toBe(
+      'LOT_NOT_STARTED',
+    );
     expect(evaluateBid(lot({ endsAt: now }), 'u1', 10_000, now)?.code).toBe('LOT_ENDED');
     expect(evaluateBid(lot({ status: 'settled' }), 'u1', 10_000, now)?.code).toBe('LOT_ENDED');
     expect(evaluateBid(lot({ status: 'cancelled' }), 'u1', 10_000, now)?.code).toBe('LOT_CANCELLED');

@@ -13,7 +13,13 @@ export function LotCard({ lot }: { lot: Lot }) {
   const now = useNow();
   const phase = currentPhase(lot, now);
   const ended = phase === 'ended';
-  const priceLabel = ended ? (lot.sold ? 'Arrematado' : 'Sem lances') : lot.bidCount ? `Lance atual · ${lot.bidCount}` : 'Lance inicial';
+  const priceLabel = ended
+    ? lot.sold
+      ? 'Arrematado'
+      : 'Sem lances'
+    : lot.bidCount
+      ? `Lance atual · ${lot.bidCount}`
+      : 'Lance inicial';
 
   return (
     <Link
@@ -34,7 +40,9 @@ export function LotCard({ lot }: { lot: Lot }) {
         </div>
         <h3 className="mt-1.5 line-clamp-2 text-sm leading-snug font-medium sm:text-base">{lot.title}</h3>
         <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground sm:text-sm">
-          {[lot.attributes.artist, lot.attributes.date].filter(Boolean).join(', ') || lot.attributes.culture || 'Autor desconhecido'}
+          {[lot.attributes.artist, lot.attributes.date].filter(Boolean).join(', ') ||
+            lot.attributes.culture ||
+            'Autor desconhecido'}
         </p>
 
         {/* mt-auto: a faixa de preço fica na base do card, alinhada entre os cards da fileira. */}
@@ -47,7 +55,9 @@ export function LotCard({ lot }: { lot: Lot }) {
               </p>
             </div>
             <div className="sm:text-right">
-              <p className="label-mono text-muted-foreground">{ended ? 'Encerrou' : phase === 'scheduled' ? 'Abre em' : 'Encerra em'}</p>
+              <p className="label-mono text-muted-foreground">
+                {ended ? 'Encerrou' : phase === 'scheduled' ? 'Abre em' : 'Encerra em'}
+              </p>
               {ended ? (
                 <p className="font-mono text-xs text-muted-foreground sm:text-[13px]">{formatDateTime(lot.endsAt)}</p>
               ) : (

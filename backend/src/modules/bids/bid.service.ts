@@ -59,7 +59,14 @@ export async function placeBid(user: AuthUser, lotId: string, amountCents: numbe
 
     const seq = lot.bid_count + 1;
     const tag = bidderTag(user.id, lotId);
-    const { hash, signature } = sealBid({ lotId, seq, bidderTag: tag, amountCents, createdAt: now, prevHash: lot.head_hash });
+    const { hash, signature } = sealBid({
+      lotId,
+      seq,
+      bidderTag: tag,
+      amountCents,
+      createdAt: now,
+      prevHash: lot.head_hash,
+    });
     await client.query(
       `INSERT INTO bids (lot_id, seq, bidder_id, bidder_tag, amount_cents, created_at, prev_hash, hash, signature)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
@@ -99,5 +106,10 @@ export async function listPublicBids(lotId: string): Promise<PublicBid[]> {
     'SELECT seq, bidder_tag, amount_cents, created_at FROM bids WHERE lot_id = $1 ORDER BY seq DESC',
     [lotId],
   );
-  return rows.map((r) => ({ seq: r.seq, bidderTag: r.bidder_tag, amountCents: r.amount_cents, createdAt: r.created_at }));
+  return rows.map((r) => ({
+    seq: r.seq,
+    bidderTag: r.bidder_tag,
+    amountCents: r.amount_cents,
+    createdAt: r.created_at,
+  }));
 }

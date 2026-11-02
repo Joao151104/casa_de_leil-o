@@ -1,12 +1,12 @@
 import { Loader2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ErrorState, PageLoading } from '@/components/app/feedback';
 import { LotImage, LotNumber, PhaseLabel } from '@/components/app/lot-bits';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { api } from '@/lib/api';
+import { useApi } from '@/hooks/useApi';
 import { formatBRL, formatDateTime, lotNumber, shortHash } from '@/lib/format';
 import { verifyInBrowser, type ClientVerification } from '@/lib/ledger';
 import type { AuditBid, AuditIssue, Lot, Receipt } from '@/lib/types';
@@ -24,7 +24,10 @@ interface AuditResponse {
 const Mark = ({ ok, label }: { ok: boolean; label: string }) => (
   <Tooltip>
     <TooltipTrigger asChild>
-      <span className={cn('font-mono text-xs', ok ? 'text-success' : 'font-bold text-destructive')} aria-label={`${label}: ${ok ? 'ok' : 'falhou'}`}>
+      <span
+        className={cn('font-mono text-xs', ok ? 'text-success' : 'font-bold text-destructive')}
+        aria-label={`${label}: ${ok ? 'ok' : 'falhou'}`}
+      >
         {ok ? 'OK' : 'FALHA'}
       </span>
     </TooltipTrigger>
@@ -36,16 +39,9 @@ const Mark = ({ ok, label }: { ok: boolean; label: string }) => (
 
 export function AuditPage() {
   const { id = '' } = useParams();
-  const [data, setData] = useState<AuditResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const { data, error } = useApi<AuditResponse>(`/audit/lots/${id}`);
   const [client, setClient] = useState<ClientVerification | null>(null);
   const [verifying, setVerifying] = useState(false);
-
-  useEffect(() => {
-    api<AuditResponse>(`/audit/lots/${id}`)
-      .then(setData)
-      .catch((e) => setError(e.message));
-  }, [id]);
 
   if (error) return <ErrorState message={error} />;
   if (!data) return <PageLoading />;
@@ -54,7 +50,15 @@ export function AuditPage() {
     setVerifying(true);
     // setTimeout para o spinner aparecer antes do cálculo síncrono.
     setTimeout(() => {
-      setClient(verifyInBrowser({ lotId: data.lot.id, bids: data.bids, head: data.head, receipt: data.receipt, publicKey: data.publicKey }));
+      setClient(
+        verifyInBrowser({
+          lotId: data.lot.id,
+          bids: data.bids,
+          head: data.head,
+          receipt: data.receipt,
+          publicKey: data.publicKey,
+        }),
+      );
       setVerifying(false);
     }, 50);
   };
@@ -85,7 +89,8 @@ export function AuditPage() {
           </div>
           <h1 className="mt-1 line-clamp-2 font-display text-2xl sm:text-3xl">{lot.title}</h1>
           <p className="mt-1 font-mono text-xs text-muted-foreground">
-            {lot.bidCount} lances · inicial {formatBRL(lot.startingPriceCents)} · incremento {formatBRL(lot.minIncrementCents)}
+            {lot.bidCount} lances · inicial {formatBRL(lot.startingPriceCents)} · incremento{' '}
+            {formatBRL(lot.minIncrementCents)}
           </p>
         </div>
       </div>
@@ -94,7 +99,12 @@ export function AuditPage() {
       <section className="grid gap-6 border-b py-10 lg:grid-cols-12">
         <div className="lg:col-span-8">
           <p className="label-mono text-muted-foreground">Veredito da auditoria</p>
-          <p className={cn('mt-2 font-display text-5xl uppercase sm:text-7xl', verification.intact ? 'text-success' : 'text-destructive')}>
+          <p
+            className={cn(
+              'mt-2 font-display text-5xl uppercase sm:text-7xl',
+              verification.intact ? 'text-success' : 'text-destructive',
+            )}
+          >
             {verification.intact ? 'Íntegro' : 'Adulterado'}
           </p>
           <p className="mt-4 max-w-2xl">
@@ -102,10 +112,14 @@ export function AuditPage() {
               ? 'Todos os lances conferem: hashes, encadeamento, assinaturas digitais e regras de lance.'
               : `${verification.issues.length} inconsistência(s) encontrada(s). O histórico foi alterado fora do sistema.`}
           </p>
-          <p className="mt-1 font-mono text-xs text-muted-foreground">Verificado pelo servidor em {formatDateTime(verification.verifiedAt)}</p>
+          <p className="mt-1 font-mono text-xs text-muted-foreground">
+            Verificado pelo servidor em {formatDateTime(verification.verifiedAt)}
+          </p>
         </div>
         <div className="flex flex-col justify-end gap-3 lg:col-span-4">
-          <p className="text-sm text-muted-foreground">Não precisa confiar no servidor: refaça os cálculos no seu navegador com a chave pública.</p>
+          <p className="text-sm text-muted-foreground">
+            Não precisa confiar no servidor: refaça os cálculos no seu navegador com a chave pública.
+          </p>
           <Button variant="outline" size="lg" className="h-11" onClick={runClientCheck} disabled={verifying}>
             {verifying && <Loader2 className="animate-spin" />} Verificar no meu navegador
           </Button>
@@ -125,7 +139,9 @@ export function AuditPage() {
           <ol className="mt-3">
             {verification.issues.map((issue, i) => (
               <li key={i} className="grid grid-cols-[5rem_1fr] gap-4 border-t py-2.5 text-sm">
-                <span className="font-mono text-xs text-muted-foreground">{issue.seq !== undefined ? `Lance ${String(issue.seq).padStart(2, '0')}` : 'Lote'}</span>
+                <span className="font-mono text-xs text-muted-foreground">
+                  {issue.seq !== undefined ? `Lance ${String(issue.seq).padStart(2, '0')}` : 'Lote'}
+                </span>
                 <span>{issue.message}</span>
               </li>
             ))}
@@ -157,7 +173,9 @@ export function AuditPage() {
                   <TableRow key={bid.seq}>
                     <TableCell className="pl-0 text-muted-foreground">{String(bid.seq).padStart(2, '0')}</TableCell>
                     <TableCell>{bid.bidderTag}</TableCell>
-                    <TableCell className="text-right text-sm font-medium tabular-nums">{formatBRL(bid.amountCents)}</TableCell>
+                    <TableCell className="text-right text-sm font-medium tabular-nums">
+                      {formatBRL(bid.amountCents)}
+                    </TableCell>
                     <TableCell className="text-muted-foreground">{formatDateTime(bid.createdAt)}</TableCell>
                     <TableCell className="text-muted-foreground">
                       <Tooltip>
@@ -205,20 +223,26 @@ export function AuditPage() {
           <div>
             <p className="label-mono mb-2 text-foreground">01 · Cadeia de hashes</p>
             <p>
-              Cada lance vira <code className="font-mono text-xs break-all text-foreground">bid-v1|lote|nº|licitante|valor|horário|hash_anterior</code>. O SHA-256 dessa linha inclui o
-              hash do lance anterior: mexer em um lance quebra todos os seguintes.
+              Cada lance vira{' '}
+              <code className="font-mono text-xs break-all text-foreground">
+                bid-v1|lote|nº|licitante|valor|horário|hash_anterior
+              </code>
+              . O SHA-256 dessa linha inclui o hash do lance anterior: mexer em um lance quebra todos os seguintes.
             </p>
           </div>
           <div>
             <p className="label-mono mb-2 text-foreground">02 · Assinatura Ed25519</p>
             <p>
-              Cada hash é assinado por uma chave privada que fica fora do banco. Quem altera o banco não consegue refazer as assinaturas. O estado final do lote também é
-              assinado, o que detecta remoções no fim.
+              Cada hash é assinado por uma chave privada que fica fora do banco. Quem altera o banco não consegue
+              refazer as assinaturas. O estado final do lote também é assinado, o que detecta remoções no fim.
             </p>
           </div>
           <div>
             <p className="label-mono mb-2 text-foreground">03 · Pseudônimos</p>
-            <p>Licitantes aparecem por um HMAC de usuário + lote: não revela nome nem e-mail e não permite cruzar participações entre lotes.</p>
+            <p>
+              Licitantes aparecem por um HMAC de usuário + lote: não revela nome nem e-mail e não permite cruzar
+              participações entre lotes.
+            </p>
           </div>
           <p className="font-mono text-xs break-all sm:col-span-3">
             <span className="text-foreground">Chave pública Ed25519 </span>

@@ -42,8 +42,9 @@ export interface LotRow {
   phase: Phase;
 }
 
-export const minimumBidCents = (lot: Pick<LotRow, 'bid_count' | 'starting_price_cents' | 'current_price_cents' | 'min_increment_cents'>) =>
-  lot.bid_count === 0 ? lot.starting_price_cents : lot.current_price_cents! + lot.min_increment_cents;
+export const minimumBidCents = (
+  lot: Pick<LotRow, 'bid_count' | 'starting_price_cents' | 'current_price_cents' | 'min_increment_cents'>,
+) => (lot.bid_count === 0 ? lot.starting_price_cents : lot.current_price_cents! + lot.min_increment_cents);
 
 export const lotImageUrl = (lot: Pick<LotRow, 'image_id' | 'image_url'>) =>
   lot.image_id ? `/api/images/${lot.image_id}` : lot.image_url;

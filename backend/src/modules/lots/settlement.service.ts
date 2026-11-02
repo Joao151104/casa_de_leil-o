@@ -2,12 +2,14 @@ import crypto from 'node:crypto';
 import { pool, tx } from '../../db/pool.js';
 import { events } from '../../lib/events.js';
 import { canonicalReceipt, sign } from '../../lib/ledger.js';
+import { createLogger } from '../../lib/logger.js';
 import { bidderTag } from '../../lib/pseudonym.js';
 import type { LotRow } from './lot.mapper.js';
 
+const log = createLogger('settlement');
+
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-const receiptCode = () =>
-  Array.from(crypto.randomBytes(10), (b) => CODE_ALPHABET[b % CODE_ALPHABET.length]).join('');
+const receiptCode = () => Array.from(crypto.randomBytes(10), (b) => CODE_ALPHABET[b % CODE_ALPHABET.length]).join('');
 
 /**
  * Liquida um lote vencido: debita o vencedor, credita o leiloeiro e emite o comprovante
@@ -47,7 +49,9 @@ export async function settleLot(lotId: string) {
       [winnerId, -price, lot.seller_id, lotId, price],
     );
 
-    const { rows: clock } = await client.query<{ now: Date }>(`SELECT date_trunc('milliseconds', clock_timestamp()) AS now`);
+    const { rows: clock } = await client.query<{ now: Date }>(
+      `SELECT date_trunc('milliseconds', clock_timestamp()) AS now`,
+    );
     const receipt = {
       code: receiptCode(),
       lotId,
@@ -92,7 +96,7 @@ export async function settleDueLots(): Promise<number> {
     try {
       if (await settleLot(id)) settled++;
     } catch (err) {
-      console.error(`[settlement] falha ao liquidar lote ${id}`, err);
+      log.error(`falha ao liquidar lote ${id}`, err);
     }
   }
   return settled;
@@ -106,7 +110,7 @@ export function startSettlementJob(intervalMs: number) {
     try {
       await settleDueLots();
     } catch (err) {
-      console.error('[settlement]', err);
+      log.error('falha no job de liquidação', err);
     } finally {
       running = false;
     }

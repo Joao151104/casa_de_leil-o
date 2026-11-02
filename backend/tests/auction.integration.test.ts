@@ -28,7 +28,11 @@ describe('lances e saldo comprometido', () => {
     const lotId = await createLot(seller.id);
 
     await placeBid(ana, lotId, 10_000);
-    expect(await getFunds(pool, ana.id)).toEqual({ balanceCents: 100_000, committedCents: 10_000, availableCents: 90_000 });
+    expect(await getFunds(pool, ana.id)).toEqual({
+      balanceCents: 100_000,
+      committedCents: 10_000,
+      availableCents: 90_000,
+    });
 
     await placeBid(bruno, lotId, 11_000);
     expect((await getFunds(pool, ana.id)).committedCents).toBe(0);
@@ -48,8 +52,12 @@ describe('lances e saldo comprometido', () => {
     const seller = await createUser('auctioneer');
     const ana = await createUser('bidder', 100_000);
     expect(await bidError(placeBid(seller, await createLot(seller.id), 10_000))).toBe('ROLE_NOT_ALLOWED');
-    expect(await bidError(placeBid(ana, await createLot(seller.id, { startsInMs: 60_000 }), 10_000))).toBe('LOT_NOT_STARTED');
-    expect(await bidError(placeBid(ana, await createLot(seller.id, { startsInMs: -120_000, endsInMs: -1_000 }), 10_000))).toBe('LOT_ENDED');
+    expect(await bidError(placeBid(ana, await createLot(seller.id, { startsInMs: 60_000 }), 10_000))).toBe(
+      'LOT_NOT_STARTED',
+    );
+    expect(
+      await bidError(placeBid(ana, await createLot(seller.id, { startsInMs: -120_000, endsInMs: -1_000 }), 10_000)),
+    ).toBe('LOT_ENDED');
   });
 
   it('lances simultâneos no mesmo lote: só um vence a disputa pelo mesmo valor', async () => {

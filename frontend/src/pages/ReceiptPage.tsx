@@ -1,11 +1,11 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Wordmark } from '@/components/app/Layout';
 import { ErrorState, PageLoading } from '@/components/app/feedback';
 import { LotImage } from '@/components/app/lot-bits';
 import { Button } from '@/components/ui/button';
-import { api } from '@/lib/api';
+import { useApi } from '@/hooks/useApi';
 import { formatBRL, formatDateTime, lotNumber } from '@/lib/format';
 import { shareReceipt } from '@/lib/share';
 import type { Lot, Receipt } from '@/lib/types';
@@ -19,28 +19,22 @@ interface ReceiptResponse {
 
 export function ReceiptPage() {
   const { code = '' } = useParams();
-  const [data, setData] = useState<ReceiptResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    api<ReceiptResponse>(`/receipts/${code}`)
-      .then(setData)
-      .catch((e) => setError(e.message));
-  }, [code]);
+  const { data, error } = useApi<ReceiptResponse>(`/receipts/${code}`);
 
   if (error) return <ErrorState message={error} />;
   if (!data) return <PageLoading />;
   const { receipt, lot } = data;
 
-  const rows: Array<[string, ReactNode]> = [
+  // [rótulo, valor, classe do valor]
+  const rows: Array<[string, ReactNode, string?]> = [
     ['Lote', lotNumber(lot.number)],
-    ['Obra', <span className="font-sans">{lot.title}</span>],
-    ['Artista', <span className="font-sans">{lot.attributes.artist ?? '—'}</span>],
-    ['Leiloeiro', <span className="font-sans">{lot.seller.name}</span>],
+    ['Obra', lot.title, 'font-sans'],
+    ['Artista', lot.attributes.artist ?? '—', 'font-sans'],
+    ['Leiloeiro', lot.seller.name, 'font-sans'],
     ['Arrematante', receipt.winnerTag],
     ['Lances no leilão', receipt.bidCount],
     ['Emitido em', formatDateTime(receipt.issuedAt)],
-    ['Hash final', <span className="text-xs break-all">{receipt.finalHash}</span>],
+    ['Hash final', receipt.finalHash, 'text-xs break-all'],
   ];
 
   const share = async () => {
@@ -58,7 +52,9 @@ export function ReceiptPage() {
         <div className="grid sm:grid-cols-[1fr_14rem]">
           <div className="p-6">
             <p className="label-mono text-muted-foreground">Valor do arremate</p>
-            <p className="mt-1 font-mono text-4xl font-medium tabular-nums sm:text-5xl">{formatBRL(receipt.amountCents)}</p>
+            <p className="mt-1 font-mono text-4xl font-medium tabular-nums sm:text-5xl">
+              {formatBRL(receipt.amountCents)}
+            </p>
             <p className="label-mono mt-6 text-muted-foreground">Código</p>
             <p className="font-mono text-xl tracking-widest">{receipt.code}</p>
           </div>
@@ -68,10 +64,10 @@ export function ReceiptPage() {
         </div>
 
         <dl className="border-t-2 border-foreground font-mono text-sm">
-          {rows.map(([k, v]) => (
+          {rows.map(([k, v, valueClassName]) => (
             <div key={k} className="grid gap-1 border-b px-6 py-2.5 last:border-b-0 sm:grid-cols-[11rem_1fr]">
               <dt className="label-mono pt-0.5 text-muted-foreground">{k}</dt>
-              <dd>{v}</dd>
+              <dd className={valueClassName}>{v}</dd>
             </div>
           ))}
         </dl>

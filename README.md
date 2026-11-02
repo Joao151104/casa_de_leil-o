@@ -25,6 +25,7 @@ Para ver a disputa ao vivo, abra duas janelas (uma anônima) com Ana e Bruno na 
 - [Deploy](#deploy)
 - [Decisões técnicas](#decisões-técnicas)
 - [API](#api)
+- [Uso de IA no projeto](#uso-de-ia-no-projeto)
 - [Limitações](#limitações)
 
 ---
@@ -341,6 +342,34 @@ Respostas de erro seguem o formato `{ "error": { "code": "...", "message": "..."
 | GET | `/api/health` | público | Status, hora do servidor e estado do circuit breaker |
 
 Eventos Socket.IO: o cliente emite `lot:watch` / `lot:unwatch` / `showcase:watch`. O servidor envia `lot:update`, `showcase:update`, `notification` e `wallet:changed`.
+
+---
+
+## Uso de IA no projeto
+
+Usei IA (Claude, via Claude Code) como ferramenta de apoio durante o desenvolvimento. As decisões de modelagem e arquitetura foram minhas, e todo trecho gerado passou por leitura, ajuste e teste antes de entrar no repositório.
+
+### Onde a IA não decidiu
+
+As partes centrais do sistema foram definidas antes de qualquer código ser gerado:
+
+- dinheiro em centavos inteiros e o saldo comprometido **calculado** a partir dos lotes em que o usuário lidera, sem um contador armazenado que pudesse dessincronizar;
+- a estratégia de concorrência: lock no lote, depois na carteira, sempre nessa ordem para evitar deadlock, e o horário do lance tirado do relógio do banco depois do lock;
+- liquidação com `FOR UPDATE SKIP LOCKED` e fase do lote derivada do relógio, sem job para "virar" status;
+- o desenho da prova de adulteração (cadeia de hashes, assinatura Ed25519 e cabeça assinada) e o limite que ela não cobre, descrito em [Limitações](#limitações);
+- pseudônimo por lote via HMAC, para não dar para cruzar a participação de alguém entre leilões.
+
+### Onde usei IA
+
+- **Código repetitivo**: rotas Express com validação Zod, componentes de tela com shadcn/ui, Dockerfiles e `docker-compose.yml`. Eu passava a estrutura e as regras, e revisava o resultado.
+- **Discussão de alternativas**: comparei com a IA abordagens para o histórico à prova de adulteração (só hash encadeado, Merkle tree, assinatura por lance) antes de fechar o desenho. Também a usei para procurar furos no que eu tinha pensado, como a remoção do último lance, que a cadeia sozinha não detecta e me levou à cabeça assinada.
+- **Testes**: eu listava os cenários (lances simultâneos no mesmo lote, mesmo licitante em vários lotes, cada tipo de adulteração) e usava a IA para acelerar a escrita. Quando um teste falhava, eu investigava a causa em vez de ajustar o teste para passar.
+- **Revisão e refatoração**: pedi revisões pontuais do diff para achar bugs e duplicação. A extração das consultas de lote para `lot.queries.ts`, por exemplo, veio de uma dessas revisões.
+- **Documentação**: rascunhos de partes do README, que depois reescrevi e enxuguei.
+
+### Como validei
+
+O que me dá segurança no código são os testes, não a ferramenta que ajudou a escrevê-lo: integração com Postgres real, concorrência e um vetor de teste compartilhado que garante que o front e o back geram e verificam exatamente os mesmos hashes e assinaturas.
 
 ---
 

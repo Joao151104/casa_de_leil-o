@@ -12,7 +12,17 @@ const TONES: Record<Tone, string> = {
 };
 
 /** Alert do shadcn no estilo do catálogo: fundo neutro e uma régua lateral na cor do status. */
-export function Notice({ tone, title, children, className }: { tone: Tone; title?: ReactNode; children?: ReactNode; className?: string }) {
+export function Notice({
+  tone,
+  title,
+  children,
+  className,
+}: {
+  tone: Tone;
+  title?: ReactNode;
+  children?: ReactNode;
+  className?: string;
+}) {
   return (
     <Alert className={cn('rounded-none border-0 border-l-2 bg-muted px-4 py-3', TONES[tone], className)}>
       {title && <AlertTitle className="font-semibold">{title}</AlertTitle>}
@@ -58,7 +68,15 @@ export function EmptyState({ title, children }: { title: string; children?: Reac
 }
 
 /** Título de página: display expandido + linha de apoio opcional. */
-export function PageHeader({ title, description, actions }: { title: ReactNode; description?: ReactNode; actions?: ReactNode }) {
+export function PageHeader({
+  title,
+  description,
+  actions,
+}: {
+  title: ReactNode;
+  description?: ReactNode;
+  actions?: ReactNode;
+}) {
   return (
     <div className="mb-8 flex flex-col gap-4 border-b pb-6 sm:flex-row sm:items-end sm:justify-between">
       <div>

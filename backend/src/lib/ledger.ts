@@ -27,9 +27,7 @@ const privateKey = crypto.createPrivateKey({
 });
 const publicKey = crypto.createPublicKey(privateKey);
 
-export const publicKeyHex = (publicKey.export({ format: 'der', type: 'spki' }) as Buffer)
-  .subarray(-32)
-  .toString('hex');
+export const publicKeyHex = (publicKey.export({ format: 'der', type: 'spki' }) as Buffer).subarray(-32).toString('hex');
 
 export interface BidFields {
   lotId: string;
@@ -57,21 +55,13 @@ export const canonicalHead = (lotId: string, bidCount: number, headHash: string)
   ['head-v1', lotId, bidCount, headHash].join('|');
 
 export const canonicalReceipt = (r: ReceiptFields) =>
-  [
-    'receipt-v1',
-    r.code,
-    r.lotId,
-    r.winnerTag,
-    r.amountCents,
-    r.bidCount,
-    r.finalHash,
-    r.issuedAt.toISOString(),
-  ].join('|');
+  ['receipt-v1', r.code, r.lotId, r.winnerTag, r.amountCents, r.bidCount, r.finalHash, r.issuedAt.toISOString()].join(
+    '|',
+  );
 
 export const sha256 = (text: string) => crypto.createHash('sha256').update(text, 'utf8').digest('hex');
 
-export const sign = (message: string) =>
-  crypto.sign(null, Buffer.from(message, 'utf8'), privateKey).toString('hex');
+export const sign = (message: string) => crypto.sign(null, Buffer.from(message, 'utf8'), privateKey).toString('hex');
 
 export function verifySignature(message: string, signatureHex: string): boolean {
   try {

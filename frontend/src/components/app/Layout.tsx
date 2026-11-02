@@ -56,7 +56,12 @@ function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
   const dark = resolvedTheme === 'dark';
   return (
-    <Button variant="ghost" size="icon" onClick={() => setTheme(dark ? 'light' : 'dark')} aria-label={dark ? 'Usar tema claro' : 'Usar tema escuro'}>
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={() => setTheme(dark ? 'light' : 'dark')}
+      aria-label={dark ? 'Usar tema claro' : 'Usar tema escuro'}
+    >
       {dark ? <Sun /> : <Moon />}
     </Button>
   );
@@ -127,7 +132,9 @@ export function Layout() {
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuLabel>
                     <p className="truncate font-medium text-foreground">{user.name}</p>
-                    <p className="label-mono font-normal text-muted-foreground">{user.role === 'auctioneer' ? 'Leiloeiro' : 'Licitante'}</p>
+                    <p className="label-mono font-normal text-muted-foreground">
+                      {user.role === 'auctioneer' ? 'Leiloeiro' : 'Licitante'}
+                    </p>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   {user.role === 'bidder' ? (

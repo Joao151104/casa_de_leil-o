@@ -16,7 +16,14 @@ describe('vetor de teste do ledger (contrato com o frontend)', () => {
   it('hashes e assinaturas dos lances', () => {
     let prevHash = GENESIS_HASH;
     for (const bid of vector.bids) {
-      const sealed = sealBid({ lotId: vector.lotId, seq: bid.seq, bidderTag: bid.bidderTag, amountCents: bid.amountCents, createdAt: new Date(bid.createdAt), prevHash });
+      const sealed = sealBid({
+        lotId: vector.lotId,
+        seq: bid.seq,
+        bidderTag: bid.bidderTag,
+        amountCents: bid.amountCents,
+        createdAt: new Date(bid.createdAt),
+        prevHash,
+      });
       expect(sealed).toEqual({ hash: bid.hash, signature: bid.signature });
       prevHash = sealed.hash;
     }
@@ -25,6 +32,8 @@ describe('vetor de teste do ledger (contrato com o frontend)', () => {
   it('cabeça e comprovante', () => {
     const { head, receipt } = vector;
     expect(sign(canonicalHead(vector.lotId, head.bidCount, head.headHash))).toBe(head.headSignature);
-    expect(sign(canonicalReceipt({ ...receipt, lotId: vector.lotId, issuedAt: new Date(receipt.issuedAt) }))).toBe(receipt.signature);
+    expect(sign(canonicalReceipt({ ...receipt, lotId: vector.lotId, issuedAt: new Date(receipt.issuedAt) }))).toBe(
+      receipt.signature,
+    );
   });
 });

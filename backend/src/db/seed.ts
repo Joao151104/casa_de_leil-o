@@ -4,12 +4,15 @@ import bcrypt from 'bcryptjs';
 import type { PoolClient } from 'pg';
 import { canonicalHead, sealBid, sign } from '../lib/ledger.js';
 import { storeRemoteImage } from '../lib/images.js';
+import { createLogger } from '../lib/logger.js';
 import { bidderTag } from '../lib/pseudonym.js';
 import type { CatalogItem } from '../modules/catalog/met.client.js';
 import { settleLot } from '../modules/lots/settlement.service.js';
 import { migrate } from './migrate.js';
 import { pool, tx } from './pool.js';
 import seedItems from './seed-items.json' with { type: 'json' };
+
+const log = createLogger('seed');
 
 export const DEMO_PASSWORD = 'demo1234';
 const items = seedItems as CatalogItem[];
@@ -26,7 +29,10 @@ async function createUser(client: PoolClient, name: string, email: string, role:
   const id = rows[0].id;
   await client.query('INSERT INTO wallets (user_id, balance_cents) VALUES ($1, $2)', [id, depositCents]);
   if (depositCents) {
-    await client.query(`INSERT INTO wallet_transactions (user_id, kind, amount_cents) VALUES ($1, 'deposit', $2)`, [id, depositCents]);
+    await client.query(`INSERT INTO wallet_transactions (user_id, kind, amount_cents) VALUES ($1, 'deposit', $2)`, [
+      id,
+      depositCents,
+    ]);
   }
   return id;
 }
@@ -76,7 +82,11 @@ async function createLot(client: PoolClient, sellerId: string, l: SeedLot) {
 }
 
 /** Insere lances com horários controlados, usando exatamente o mesmo encadeamento/assinatura do serviço. */
-async function addBids(client: PoolClient, lotId: string, bids: Array<[userId: string, amountCents: number, at: Date]>) {
+async function addBids(
+  client: PoolClient,
+  lotId: string,
+  bids: Array<[userId: string, amountCents: number, at: Date]>,
+) {
   let prevHash = '0'.repeat(64);
   let seq = 0;
   for (const [userId, amountCents, at] of bids) {
@@ -97,15 +107,17 @@ async function addBids(client: PoolClient, lotId: string, bids: Array<[userId: s
   }
 }
 
-export async function seed(log = console.log) {
+export async function seed(info = log.info) {
   const now = Date.now();
   const at = (offsetMs: number) => new Date(now + offsetMs);
   const byId = (id: string) => items.find((i) => i.externalId === id)!;
 
   // Imagens primeiro (fora da transação): se o servidor de imagens estiver fora, o lote usa a URL externa.
   const imageIds = new Map<string, string | null>();
-  await Promise.all(items.map(async (item) => imageIds.set(item.externalId, await storeRemoteImage(pool, item.imageUrl))));
-  log(`[seed] imagens copiadas: ${[...imageIds.values()].filter(Boolean).length}/${items.length}`);
+  await Promise.all(
+    items.map(async (item) => imageIds.set(item.externalId, await storeRemoteImage(pool, item.imageUrl))),
+  );
+  info(`imagens copiadas: ${[...imageIds.values()].filter(Boolean).length}/${items.length}`);
 
   const settleIds = await tx(async (client) => {
     for (const item of items) {
@@ -123,7 +135,10 @@ export async function seed(log = console.log) {
 
     // Ao vivo, com lances abertos (encerram em 30 dias para continuarem abertos durante a avaliação).
     const sunflowers = await lot('436524', {
-      startingCents: 1_000_00, incrementCents: 100_00, startsAt: at(-2 * HOUR), endsAt: at(30 * DAY),
+      startingCents: 1_000_00,
+      incrementCents: 100_00,
+      startsAt: at(-2 * HOUR),
+      endsAt: at(30 * DAY),
       description: 'Reprodução certificada da célebre série de girassóis pintada em Paris, 1887.',
     });
     await addBids(client, sunflowers, [
@@ -131,7 +146,12 @@ export async function seed(log = console.log) {
       [bruno, 1_200_00, at(-80 * MIN)],
       [ana, 1_500_00, at(-60 * MIN)],
     ]);
-    const dancers = await lot('436166', { startingCents: 800_00, incrementCents: 50_00, startsAt: at(-1 * DAY), endsAt: at(7 * DAY) });
+    const dancers = await lot('436166', {
+      startingCents: 800_00,
+      incrementCents: 50_00,
+      startsAt: at(-1 * DAY),
+      endsAt: at(7 * DAY),
+    });
     await addBids(client, dancers, [
       [bruno, 800_00, at(-20 * HOUR)],
       [ana, 900_00, at(-10 * HOUR)],
@@ -140,20 +160,45 @@ export async function seed(log = console.log) {
     await lot('45434', { startingCents: 500_00, incrementCents: 50_00, startsAt: at(-30 * MIN), endsAt: at(30 * DAY) });
 
     // Agendados.
-    await lot('437878', { startingCents: 2_000_00, incrementCents: 200_00, startsAt: at(2 * DAY), endsAt: at(12 * DAY) });
-    await lot('894743', { startingCents: 3_000_00, incrementCents: 250_00, startsAt: at(1 * DAY), endsAt: at(9 * DAY) });
+    await lot('437878', {
+      startingCents: 2_000_00,
+      incrementCents: 200_00,
+      startsAt: at(2 * DAY),
+      endsAt: at(12 * DAY),
+    });
+    await lot('894743', {
+      startingCents: 3_000_00,
+      incrementCents: 250_00,
+      startsAt: at(1 * DAY),
+      endsAt: at(9 * DAY),
+    });
 
     // Encerrados: um arrematado (gera comprovante) e um sem lances.
-    const cat = await lot('544118', { startingCents: 300_00, incrementCents: 50_00, startsAt: at(-3 * DAY), endsAt: at(-1 * DAY) });
+    const cat = await lot('544118', {
+      startingCents: 300_00,
+      incrementCents: 50_00,
+      startsAt: at(-3 * DAY),
+      endsAt: at(-1 * DAY),
+    });
     await addBids(client, cat, [
       [bruno, 300_00, at(-60 * HOUR)],
       [ana, 400_00, at(-50 * HOUR)],
       [bruno, 500_00, at(-30 * HOUR)],
     ]);
-    const vase = await lot('9408', { startingCents: 1_500_00, incrementCents: 100_00, startsAt: at(-4 * DAY), endsAt: at(-2 * DAY) });
+    const vase = await lot('9408', {
+      startingCents: 1_500_00,
+      incrementCents: 100_00,
+      startsAt: at(-4 * DAY),
+      endsAt: at(-2 * DAY),
+    });
 
     // Cancelado (não aparece na vitrine, só no painel do leiloeiro).
-    const crawfish = await lot('52101', { startingCents: 200_00, incrementCents: 20_00, startsAt: at(-1 * HOUR), endsAt: at(5 * DAY) });
+    const crawfish = await lot('52101', {
+      startingCents: 200_00,
+      incrementCents: 20_00,
+      startsAt: at(-1 * HOUR),
+      endsAt: at(5 * DAY),
+    });
     await client.query(
       `UPDATE lots SET status = 'cancelled', cancelled_at = now(), cancel_reason = 'Peça retirada pelo consignante.' WHERE id = $1`,
       [crawfish],
@@ -162,12 +207,12 @@ export async function seed(log = console.log) {
   });
 
   for (const id of settleIds) await settleLot(id);
-  log(`[seed] dados de demonstração criados (senha de todos: ${DEMO_PASSWORD})`);
+  info(`dados de demonstração criados (senha de todos: ${DEMO_PASSWORD})`);
 }
 
-export async function seedIfEmpty(log = console.log) {
+export async function seedIfEmpty(info = log.info) {
   const { rows } = await pool.query('SELECT count(*)::int AS n FROM users');
-  if (rows[0].n === 0) await seed(log);
+  if (rows[0].n === 0) await seed(info);
 }
 
 export async function resetDatabase() {
@@ -183,12 +228,12 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.a
       await resetDatabase();
       await seed();
     } else {
-      await seedIfEmpty((m) => console.log(m));
-      console.log('[seed] concluído (nada a fazer se o banco já tinha usuários; use --reset para recriar)');
+      await seedIfEmpty();
+      log.info('concluído (nada a fazer se o banco já tinha usuários; use --reset para recriar)');
     }
   })()
     .catch((err) => {
-      console.error(err);
+      log.error('falha no seed', err);
       process.exitCode = 1;
     })
     .finally(() => pool.end());

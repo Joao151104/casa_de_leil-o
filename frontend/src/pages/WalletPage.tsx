@@ -41,12 +41,30 @@ export function WalletPage() {
 
   return (
     <div>
-      <PageHeader title="Carteira" description="Saldo simulado. O valor do lote em que você lidera fica comprometido até ser superado ou liquidado." />
+      <PageHeader
+        title="Carteira"
+        description="Saldo simulado. O valor do lote em que você lidera fica comprometido até ser superado ou liquidado."
+      />
 
       <div className="grid border-y sm:grid-cols-3">
-        <Figure label="Saldo total" value={formatBRL(wallet.balanceCents)} className="py-5 sm:pr-6" valueClassName="text-3xl" />
-        <Figure label="Comprometido em lances" value={formatBRL(wallet.committedCents)} className="border-t py-5 sm:border-t-0 sm:border-l sm:px-6" valueClassName="text-3xl" />
-        <Figure label="Disponível para lances" value={formatBRL(wallet.availableCents)} className="border-t py-5 sm:border-t-0 sm:border-l sm:pl-6" valueClassName="text-3xl text-signal" />
+        <Figure
+          label="Saldo total"
+          value={formatBRL(wallet.balanceCents)}
+          className="py-5 sm:pr-6"
+          valueClassName="text-3xl"
+        />
+        <Figure
+          label="Comprometido em lances"
+          value={formatBRL(wallet.committedCents)}
+          className="border-t py-5 sm:border-t-0 sm:border-l sm:px-6"
+          valueClassName="text-3xl"
+        />
+        <Figure
+          label="Disponível para lances"
+          value={formatBRL(wallet.availableCents)}
+          className="border-t py-5 sm:border-t-0 sm:border-l sm:pl-6"
+          valueClassName="text-3xl text-signal"
+        />
       </div>
 
       <div className="mt-12 grid gap-12 lg:grid-cols-12">
@@ -57,7 +75,12 @@ export function WalletPage() {
               {error && <Notice tone="danger">{error}</Notice>}
               <div className="flex gap-2">
                 <div className="flex-1">
-                  <MoneyField placeholder="0,00" value={amount} onChange={(e) => setAmount(e.target.value)} aria-label="Valor do depósito" />
+                  <MoneyField
+                    placeholder="0,00"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    aria-label="Valor do depósito"
+                  />
                 </div>
                 <Button type="submit" size="lg" className="h-10" disabled={busy}>
                   {busy && <Loader2 className="animate-spin" />} Depositar
@@ -65,7 +88,15 @@ export function WalletPage() {
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {['1.000,00', '5.000,00', '10.000,00', '50.000,00'].map((v) => (
-                  <Button key={v} type="button" variant="outline" size="sm" className="font-mono text-xs" disabled={busy} onClick={(e) => deposit(e, v)}>
+                  <Button
+                    key={v}
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="font-mono text-xs"
+                    disabled={busy}
+                    onClick={(e) => deposit(e, v)}
+                  >
                     +{v}
                   </Button>
                 ))}
@@ -98,7 +129,9 @@ export function WalletPage() {
         <section className="lg:col-span-7">
           <h2 className="border-b pb-2 font-display text-lg">Extrato</h2>
           {wallet.transactions.length === 0 ? (
-            <p className="py-4 text-sm text-muted-foreground">Nenhuma movimentação ainda. Faça um depósito para começar a dar lances.</p>
+            <p className="py-4 text-sm text-muted-foreground">
+              Nenhuma movimentação ainda. Faça um depósito para começar a dar lances.
+            </p>
           ) : (
             <Table>
               <TableHeader>
@@ -111,12 +144,16 @@ export function WalletPage() {
               <TableBody>
                 {wallet.transactions.map((t) => (
                   <TableRow key={t.id}>
-                    <TableCell className="pl-0 font-mono text-xs text-muted-foreground">{formatDateTime(t.createdAt)}</TableCell>
+                    <TableCell className="pl-0 font-mono text-xs text-muted-foreground">
+                      {formatDateTime(t.createdAt)}
+                    </TableCell>
                     <TableCell className="max-w-0 w-full">
                       <span className="font-medium">{KIND_LABEL[t.kind]}</span>
                       {t.lotTitle && <span className="block truncate text-xs text-muted-foreground">{t.lotTitle}</span>}
                     </TableCell>
-                    <TableCell className={cn('pr-0 text-right font-mono tabular-nums', t.amountCents > 0 && 'text-success')}>
+                    <TableCell
+                      className={cn('pr-0 text-right font-mono tabular-nums', t.amountCents > 0 && 'text-success')}
+                    >
                       {t.amountCents > 0 ? '+' : '−'}
                       {formatBRL(Math.abs(t.amountCents))}
                     </TableCell>

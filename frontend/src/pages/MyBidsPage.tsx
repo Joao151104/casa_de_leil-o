@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { EmptyState, ErrorState, PageHeader, PageLoading } from '@/components/app/feedback';
 import { LotImage, LotNumber, PhaseLabel } from '@/components/app/lot-bits';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { api } from '@/lib/api';
+import { useApi } from '@/hooks/useApi';
 import { formatBRL, formatDateTime } from '@/lib/format';
 import { shareReceipt } from '@/lib/share';
 import { getSocket } from '@/lib/socket';
@@ -37,38 +37,29 @@ const TABS = [
   { key: 'closed', label: 'Encerrados', match: (o: Outcome) => o === 'lost' || o === 'cancelled' },
 ];
 
+const share = async (code: string) => {
+  if (await shareReceipt(code)) toast.success('Link do comprovante copiado');
+};
+
 export function MyBidsPage() {
-  const [items, setItems] = useState<Item[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const { data, error, reload } = useApi<{ items: Item[] }>('/me/bids');
   const [tab, setTab] = useState('active');
 
-  const load = useCallback(
-    () =>
-      api<{ items: Item[] }>('/me/bids')
-        .then((d) => setItems(d.items))
-        .catch((e) => setError(e.message)),
-    [],
-  );
-
   useEffect(() => {
-    load();
     // Superado, arrematado ou estornado: a carteira muda → recarrega a lista.
     const socket = getSocket();
-    socket.on('wallet:changed', load);
+    socket.on('wallet:changed', reload);
     return () => {
-      socket.off('wallet:changed', load);
+      socket.off('wallet:changed', reload);
     };
-  }, [load]);
+  }, [reload]);
 
   if (error) return <ErrorState message={error} />;
-  if (!items) return <PageLoading />;
+  if (!data) return <PageLoading />;
+  const { items } = data;
 
   const current = TABS.find((t) => t.key === tab)!;
   const visible = items.filter((i) => current.match(i.outcome));
-
-  const share = async (code: string) => {
-    if (await shareReceipt(code)) toast.success('Link do comprovante copiado');
-  };
 
   return (
     <div>
@@ -79,7 +70,9 @@ export function MyBidsPage() {
           {TABS.map((t) => (
             <TabsTrigger key={t.key} value={t.key} className="flex-none gap-2 px-0 text-base after:bottom-[-1px]!">
               {t.label}
-              <span className="font-mono text-xs text-muted-foreground">{items.filter((i) => t.match(i.outcome)).length}</span>
+              <span className="font-mono text-xs text-muted-foreground">
+                {items.filter((i) => t.match(i.outcome)).length}
+              </span>
             </TabsTrigger>
           ))}
         </TabsList>
@@ -103,7 +96,9 @@ export function MyBidsPage() {
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
                   <LotNumber lot={item.lot} />
                   <PhaseLabel phase={item.lot.phase} />
-                  <span className={cn('label-mono font-semibold', OUTCOME[item.outcome].className)}>{OUTCOME[item.outcome].label}</span>
+                  <span className={cn('label-mono font-semibold', OUTCOME[item.outcome].className)}>
+                    {OUTCOME[item.outcome].label}
+                  </span>
                 </div>
                 <Link to={`/lotes/${item.lot.id}`} className="mt-1 line-clamp-1 text-lg font-medium hover:underline">
                   {item.lot.title}
@@ -134,8 +129,13 @@ export function MyBidsPage() {
                   </>
                 )}
                 {(item.outcome === 'winning' || item.outcome === 'outbid') && (
-                  <Button className={cn(item.outcome === 'outbid' && 'bg-signal text-signal-foreground hover:bg-signal/90')} asChild>
-                    <Link to={`/lotes/${item.lot.id}`}>{item.outcome === 'outbid' ? 'Cobrir lance' : 'Ir para a sala'}</Link>
+                  <Button
+                    className={cn(item.outcome === 'outbid' && 'bg-signal text-signal-foreground hover:bg-signal/90')}
+                    asChild
+                  >
+                    <Link to={`/lotes/${item.lot.id}`}>
+                      {item.outcome === 'outbid' ? 'Cobrir lance' : 'Ir para a sala'}
+                    </Link>
                   </Button>
                 )}
                 <Button variant="ghost" asChild>

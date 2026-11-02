@@ -7,7 +7,14 @@ import { verifyInBrowser } from './ledger';
  * ledger-vector.test.ts). Aqui garantimos que a verificação no navegador aceita exatamente
  * o que o servidor assina, e rejeita qualquer alteração.
  */
-const input = () => structuredClone({ lotId: vector.lotId, bids: vector.bids, head: vector.head, receipt: vector.receipt, publicKey: vector.publicKey });
+const input = () =>
+  structuredClone({
+    lotId: vector.lotId,
+    bids: vector.bids,
+    head: vector.head,
+    receipt: vector.receipt,
+    publicKey: vector.publicKey,
+  });
 
 describe('verificação no navegador (vetor de teste do backend)', () => {
   it('aceita o histórico íntegro', () => {

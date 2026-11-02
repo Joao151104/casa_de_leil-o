@@ -8,7 +8,14 @@ const t0 = new Date('2026-10-28T12:00:00.000Z');
 function buildChain(amounts: Array<[tag: string, cents: number]>): LedgerBid[] {
   let prevHash = GENESIS_HASH;
   return amounts.map(([bidderTag, amountCents], i) => {
-    const fields = { lotId, seq: i + 1, bidderTag, amountCents, createdAt: new Date(t0.getTime() + i * 1000), prevHash };
+    const fields = {
+      lotId,
+      seq: i + 1,
+      bidderTag,
+      amountCents,
+      createdAt: new Date(t0.getTime() + i * 1000),
+      prevHash,
+    };
     const sealed = sealBid(fields);
     prevHash = sealed.hash;
     return { ...fields, ...sealed };
@@ -34,7 +41,13 @@ function input(bids: LedgerBid[]): LedgerInput {
   };
 }
 
-const chain = () => buildChain([['L-A', 1_000], ['L-B', 1_100], ['L-A', 1_300], ['L-B', 1_500]]);
+const chain = () =>
+  buildChain([
+    ['L-A', 1_000],
+    ['L-B', 1_100],
+    ['L-A', 1_300],
+    ['L-B', 1_500],
+  ]);
 
 describe('verificação do histórico (prova de adulteração)', () => {
   it('histórico íntegro passa', () => {

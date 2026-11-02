@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { requireRole } from '../auth/auth.js';
-import { bidderActivity, sellerDashboard } from './lot.service.js';
+import { bidderActivity, sellerDashboard } from './lot.queries.js';
 
 export const meRouter = Router();
 

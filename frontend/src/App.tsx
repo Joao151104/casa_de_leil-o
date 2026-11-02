@@ -33,7 +33,9 @@ function RequireRole({ role, children }: { role: Role; children: ReactNode }) {
   if (user.role !== role) {
     return (
       <ErrorState
-        message={role === 'auctioneer' ? 'Esta área é exclusiva para leiloeiros.' : 'Esta área é exclusiva para licitantes.'}
+        message={
+          role === 'auctioneer' ? 'Esta área é exclusiva para leiloeiros.' : 'Esta área é exclusiva para licitantes.'
+        }
         action={<BackHome />}
       />
     );
@@ -56,10 +58,38 @@ export function App() {
                   <Route path="comprovante/:code" element={<ReceiptPage />} />
                   <Route path="entrar" element={<LoginPage />} />
                   <Route path="cadastro" element={<RegisterPage />} />
-                  <Route path="carteira" element={<RequireRole role="bidder"><WalletPage /></RequireRole>} />
-                  <Route path="meus-arremates" element={<RequireRole role="bidder"><MyBidsPage /></RequireRole>} />
-                  <Route path="painel" element={<RequireRole role="auctioneer"><DashboardPage /></RequireRole>} />
-                  <Route path="painel/novo-lote" element={<RequireRole role="auctioneer"><NewLotPage /></RequireRole>} />
+                  <Route
+                    path="carteira"
+                    element={
+                      <RequireRole role="bidder">
+                        <WalletPage />
+                      </RequireRole>
+                    }
+                  />
+                  <Route
+                    path="meus-arremates"
+                    element={
+                      <RequireRole role="bidder">
+                        <MyBidsPage />
+                      </RequireRole>
+                    }
+                  />
+                  <Route
+                    path="painel"
+                    element={
+                      <RequireRole role="auctioneer">
+                        <DashboardPage />
+                      </RequireRole>
+                    }
+                  />
+                  <Route
+                    path="painel/novo-lote"
+                    element={
+                      <RequireRole role="auctioneer">
+                        <NewLotPage />
+                      </RequireRole>
+                    }
+                  />
                   <Route path="*" element={<ErrorState message="Página não encontrada." action={<BackHome />} />} />
                 </Route>
               </Routes>

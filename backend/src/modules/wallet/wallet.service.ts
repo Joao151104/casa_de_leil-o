@@ -57,14 +57,14 @@ export async function getWallet(db: Db, userId: string) {
 
 export async function deposit(userId: string, amountCents: number) {
   await tx(async (client) => {
-    await client.query(
-      'UPDATE wallets SET balance_cents = balance_cents + $2, updated_at = now() WHERE user_id = $1',
-      [userId, amountCents],
-    );
-    await client.query(
-      `INSERT INTO wallet_transactions (user_id, kind, amount_cents) VALUES ($1, 'deposit', $2)`,
-      [userId, amountCents],
-    );
+    await client.query('UPDATE wallets SET balance_cents = balance_cents + $2, updated_at = now() WHERE user_id = $1', [
+      userId,
+      amountCents,
+    ]);
+    await client.query(`INSERT INTO wallet_transactions (user_id, kind, amount_cents) VALUES ($1, 'deposit', $2)`, [
+      userId,
+      amountCents,
+    ]);
   });
   events.emitEvent('wallet.changed', { userIds: [userId] });
 }

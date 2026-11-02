@@ -33,9 +33,16 @@ function AuthShell({ children }: { children: ReactNode }) {
           <>
             {/* Obra inteira sobre a "parede", sem ampliar a imagem (as do Met têm resolução média). */}
             <div className="absolute inset-x-0 top-0 bottom-24 flex items-center justify-center p-12">
-              <LotImage src={lot.imageUrl} alt={lot.title} className="max-h-full max-w-full object-contain! shadow-[0_24px_48px_-24px_rgb(0_0_0/0.45)]" />
+              <LotImage
+                src={lot.imageUrl}
+                alt={lot.title}
+                className="max-h-full max-w-full object-contain! shadow-[0_24px_48px_-24px_rgb(0_0_0/0.45)]"
+              />
             </div>
-            <Link to={`/lotes/${lot.id}`} className="absolute inset-x-0 bottom-0 bg-background/90 px-6 py-4 backdrop-blur hover:bg-background">
+            <Link
+              to={`/lotes/${lot.id}`}
+              className="absolute inset-x-0 bottom-0 bg-background/90 px-6 py-4 backdrop-blur hover:bg-background"
+            >
               <p className="label-mono text-signal">Em leilão agora · Lote {lotNumber(lot.number)}</p>
               <p className="mt-1 line-clamp-1 font-medium">{lot.title}</p>
               <p className="text-sm text-muted-foreground">{lot.attributes.artist}</p>
@@ -81,11 +88,27 @@ export function LoginPage() {
         {error && <Notice tone="danger">{error}</Notice>}
         <div className="space-y-2">
           <Label htmlFor="email">E-mail</Label>
-          <Input id="email" type="email" className="h-10" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+          <Input
+            id="email"
+            type="email"
+            className="h-10"
+            autoComplete="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="password">Senha</Label>
-          <Input id="password" type="password" className="h-10" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+          <Input
+            id="password"
+            type="password"
+            className="h-10"
+            autoComplete="current-password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
         </div>
         <Button type="submit" size="lg" className="h-10 w-full" disabled={busy}>
           {busy && <Loader2 className="animate-spin" />} Entrar
@@ -107,7 +130,8 @@ export function RegisterPage() {
   const [form, setForm] = useState({ name: '', email: '', password: '', role: 'bidder' as Role });
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const set = (k: keyof typeof form) => (e: { target: { value: string } }) => setForm((f) => ({ ...f, [k]: e.target.value }));
+  const set = (k: keyof typeof form) => (e: { target: { value: string } }) =>
+    setForm((f) => ({ ...f, [k]: e.target.value }));
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -146,9 +170,23 @@ export function RegisterPage() {
                   form.role === r.value ? 'bg-foreground text-background' : 'hover:bg-muted',
                 )}
               >
-                <input type="radio" name="role" value={r.value} checked={form.role === r.value} onChange={set('role')} className="sr-only" />
+                <input
+                  type="radio"
+                  name="role"
+                  value={r.value}
+                  checked={form.role === r.value}
+                  onChange={set('role')}
+                  className="sr-only"
+                />
                 <span className="block font-medium">{r.title}</span>
-                <span className={cn('block text-xs', form.role === r.value ? 'text-background/70' : 'text-muted-foreground')}>{r.text}</span>
+                <span
+                  className={cn(
+                    'block text-xs',
+                    form.role === r.value ? 'text-background/70' : 'text-muted-foreground',
+                  )}
+                >
+                  {r.text}
+                </span>
               </label>
             ))}
           </div>
@@ -159,11 +197,28 @@ export function RegisterPage() {
         </div>
         <div className="space-y-2">
           <Label htmlFor="email">E-mail</Label>
-          <Input id="email" type="email" className="h-10" required value={form.email} onChange={set('email')} autoComplete="email" />
+          <Input
+            id="email"
+            type="email"
+            className="h-10"
+            required
+            value={form.email}
+            onChange={set('email')}
+            autoComplete="email"
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="password">Senha</Label>
-          <Input id="password" type="password" className="h-10" required minLength={6} value={form.password} onChange={set('password')} autoComplete="new-password" />
+          <Input
+            id="password"
+            type="password"
+            className="h-10"
+            required
+            minLength={6}
+            value={form.password}
+            onChange={set('password')}
+            autoComplete="new-password"
+          />
           <p className="text-xs text-muted-foreground">Mínimo de 6 caracteres.</p>
         </div>
         <Button type="submit" size="lg" className="h-10 w-full" disabled={busy}>

@@ -31,9 +31,13 @@ const reject = (code: string, message: string, details?: Record<string, unknown>
 export function evaluateBid(lot: RuleLot, bidderId: string, amountCents: number, now: Date): AppError | null {
   if (lot.status === 'cancelled') return reject('LOT_CANCELLED', 'Este lote foi cancelado pelo leiloeiro.');
   if (now < lot.startsAt) {
-    return reject('LOT_NOT_STARTED', `Este lote ainda não começou. Os lances abrem em ${dateTime.format(lot.startsAt)}.`, {
-      startsAt: lot.startsAt,
-    });
+    return reject(
+      'LOT_NOT_STARTED',
+      `Este lote ainda não começou. Os lances abrem em ${dateTime.format(lot.startsAt)}.`,
+      {
+        startsAt: lot.startsAt,
+      },
+    );
   }
   if (lot.status === 'settled' || now >= lot.endsAt) return reject('LOT_ENDED', 'Este lote já foi encerrado.');
   if (lot.leaderId === bidderId) {

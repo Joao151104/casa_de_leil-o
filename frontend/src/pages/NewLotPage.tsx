@@ -25,9 +25,10 @@ interface SearchResult {
 
 const SUGGESTIONS = ['Van Gogh', 'Hokusai', 'Degas', 'Rembrandt', 'Samurai', 'Egyptian', 'Tiffany'];
 
+const pad = (n: number) => String(n).padStart(2, '0');
+
 /** Date → valor de <input type="datetime-local"> no fuso local. */
 const toLocalInput = (d: Date) => {
-  const pad = (n: number) => String(n).padStart(2, '0');
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
 
@@ -89,7 +90,8 @@ export function NewLotPage() {
     if (!selected) return;
     const startingPriceCents = parseBRL(form.startingPrice);
     const minIncrementCents = parseBRL(form.increment);
-    if (!startingPriceCents || !minIncrementCents) return setFormError('Informe valores válidos para o lance inicial e o incremento.');
+    if (!startingPriceCents || !minIncrementCents)
+      return setFormError('Informe valores válidos para o lance inicial e o incremento.');
     const startsAt = form.startNow ? new Date() : new Date(form.startsAt);
     const endsAt = new Date(form.endsAt);
     if (Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime())) return setFormError('Datas inválidas.');
@@ -134,74 +136,114 @@ export function NewLotPage() {
       {selected && (
         <section className="border-t-2 border-foreground pt-6">
           <p className="label-mono text-muted-foreground">Passo 2 · Condições do leilão</p>
-          <p className="mt-1 mb-6 text-sm text-muted-foreground">Imagem, título e atributos são copiados do acervo e ficam salvos no lote.</p>
-            <form onSubmit={submit} className="grid gap-8 md:grid-cols-[260px_1fr]">
-              <div>
-                <ArtworkFrame src={selected.imageUrl} alt={selected.title} className="aspect-square" inset="inset-5" />
-                <p className="mt-3 font-medium">{selected.title}</p>
-                <p className="mt-1 text-xs text-muted-foreground">{[selected.artist, selected.date, selected.medium].filter(Boolean).join(' · ')}</p>
-                <Button type="button" variant="ghost" size="sm" className="mt-1 -ml-2" onClick={() => setSelected(null)}>
-                  Trocar obra
+          <p className="mt-1 mb-6 text-sm text-muted-foreground">
+            Imagem, título e atributos são copiados do acervo e ficam salvos no lote.
+          </p>
+          <form onSubmit={submit} className="grid gap-8 md:grid-cols-[260px_1fr]">
+            <div>
+              <ArtworkFrame src={selected.imageUrl} alt={selected.title} className="aspect-square" inset="inset-5" />
+              <p className="mt-3 font-medium">{selected.title}</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {[selected.artist, selected.date, selected.medium].filter(Boolean).join(' · ')}
+              </p>
+              <Button type="button" variant="ghost" size="sm" className="mt-1 -ml-2" onClick={() => setSelected(null)}>
+                Trocar obra
+              </Button>
+            </div>
+            <div className="space-y-4">
+              {formError && <Notice tone="danger">{formError}</Notice>}
+              <div className="space-y-2">
+                <Label htmlFor="title">Título do lote</Label>
+                <Input
+                  id="title"
+                  className="h-10"
+                  value={form.title}
+                  maxLength={200}
+                  onChange={(e) => setForm({ ...form, title: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="description">
+                  Descrição <span className="font-normal text-muted-foreground">(opcional)</span>
+                </Label>
+                <Textarea
+                  id="description"
+                  rows={3}
+                  maxLength={2000}
+                  value={form.description}
+                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                />
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="start">Lance inicial (valor mínimo)</Label>
+                  <MoneyField
+                    id="start"
+                    value={form.startingPrice}
+                    onChange={(e) => setForm({ ...form, startingPrice: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="inc">Incremento mínimo</Label>
+                  <MoneyField
+                    id="inc"
+                    value={form.increment}
+                    onChange={(e) => setForm({ ...form, increment: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>Início</Label>
+                  <div className="flex h-10 items-center gap-2">
+                    <Checkbox
+                      id="start-now"
+                      checked={form.startNow}
+                      onCheckedChange={(v) => setForm({ ...form, startNow: v === true })}
+                    />
+                    <Label htmlFor="start-now" className="font-normal">
+                      Começar agora
+                    </Label>
+                  </div>
+                  {!form.startNow && (
+                    <Input
+                      type="datetime-local"
+                      className="h-10"
+                      value={form.startsAt}
+                      onChange={(e) => setForm({ ...form, startsAt: e.target.value })}
+                      aria-label="Data de início"
+                    />
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="ends">Encerramento</Label>
+                  <Input
+                    id="ends"
+                    type="datetime-local"
+                    className="h-10"
+                    value={form.endsAt}
+                    onChange={(e) => setForm({ ...form, endsAt: e.target.value })}
+                  />
+                  <div className="flex flex-wrap gap-1.5">
+                    {DURATIONS.map((d) => (
+                      <Button key={d.label} type="button" variant="outline" size="xs" onClick={() => setDuration(d.ms)}>
+                        +{d.label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <p className="font-mono text-xs text-muted-foreground">
+                Primeiro lance ≥ {formatBRL(parseBRL(form.startingPrice) ?? 0)}; os seguintes ≥ lance atual +{' '}
+                {formatBRL(parseBRL(form.increment) ?? 0)}. Lances nos últimos 2 minutos prorrogam o fim em 2 minutos.
+              </p>
+              <div className="flex justify-end">
+                <Button type="submit" size="lg" className="h-10" disabled={saving}>
+                  {saving && <Loader2 className="animate-spin" />} Publicar lote
                 </Button>
               </div>
-              <div className="space-y-4">
-                {formError && <Notice tone="danger">{formError}</Notice>}
-                <div className="space-y-2">
-                  <Label htmlFor="title">Título do lote</Label>
-                  <Input id="title" className="h-10" value={form.title} maxLength={200} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="description">
-                    Descrição <span className="font-normal text-muted-foreground">(opcional)</span>
-                  </Label>
-                  <Textarea id="description" rows={3} maxLength={2000} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-                </div>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="start">Lance inicial (valor mínimo)</Label>
-                    <MoneyField id="start" value={form.startingPrice} onChange={(e) => setForm({ ...form, startingPrice: e.target.value })} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="inc">Incremento mínimo</Label>
-                    <MoneyField id="inc" value={form.increment} onChange={(e) => setForm({ ...form, increment: e.target.value })} />
-                  </div>
-                </div>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label>Início</Label>
-                    <div className="flex h-10 items-center gap-2">
-                      <Checkbox id="start-now" checked={form.startNow} onCheckedChange={(v) => setForm({ ...form, startNow: v === true })} />
-                      <Label htmlFor="start-now" className="font-normal">
-                        Começar agora
-                      </Label>
-                    </div>
-                    {!form.startNow && (
-                      <Input type="datetime-local" className="h-10" value={form.startsAt} onChange={(e) => setForm({ ...form, startsAt: e.target.value })} aria-label="Data de início" />
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="ends">Encerramento</Label>
-                    <Input id="ends" type="datetime-local" className="h-10" value={form.endsAt} onChange={(e) => setForm({ ...form, endsAt: e.target.value })} />
-                    <div className="flex flex-wrap gap-1.5">
-                      {DURATIONS.map((d) => (
-                        <Button key={d.label} type="button" variant="outline" size="xs" onClick={() => setDuration(d.ms)}>
-                          +{d.label}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-                <p className="font-mono text-xs text-muted-foreground">
-                  Primeiro lance ≥ {formatBRL(parseBRL(form.startingPrice) ?? 0)}; os seguintes ≥ lance atual + {formatBRL(parseBRL(form.increment) ?? 0)}. Lances
-                  nos últimos 2 minutos prorrogam o fim em 2 minutos.
-                </p>
-                <div className="flex justify-end">
-                  <Button type="submit" size="lg" className="h-10" disabled={saving}>
-                    {saving && <Loader2 className="animate-spin" />} Publicar lote
-                  </Button>
-                </div>
-              </div>
-            </form>
+            </div>
+          </form>
         </section>
       )}
 
@@ -240,7 +282,9 @@ export function NewLotPage() {
         {searchError && <Notice tone="danger">{searchError}</Notice>}
         {result?.warning && <Notice tone="warning">{result.warning}</Notice>}
         {result && result.items.length === 0 && !searching && (
-          <EmptyState title={result.total ? 'Nenhuma obra com imagem liberada nesta página' : 'Nenhuma obra encontrada'}>
+          <EmptyState
+            title={result.total ? 'Nenhuma obra com imagem liberada nesta página' : 'Nenhuma obra encontrada'}
+          >
             {result.total
               ? 'O museu só disponibiliza imagens de obras em domínio público. Tente a próxima página ou outro termo.'
               : 'Tente outro termo (o acervo do Met é catalogado em inglês).'}
@@ -251,7 +295,12 @@ export function NewLotPage() {
             <p className="font-mono text-xs text-muted-foreground">
               {result.total.toLocaleString('pt-BR')} resultados{result.source === 'cache' && ' · do cache'}
             </p>
-            <div className={cn('grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-6', searching && 'opacity-60')}>
+            <div
+              className={cn(
+                'grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-6',
+                searching && 'opacity-60',
+              )}
+            >
               {result.items.map((item) => {
                 const isSelected = selected?.externalId === item.externalId;
                 return (
@@ -266,13 +315,24 @@ export function NewLotPage() {
                       isSelected && 'border-signal ring-1 ring-signal hover:border-signal',
                     )}
                   >
-                    <ArtworkFrame src={item.imageUrl} alt={item.title} className="aspect-square w-full border-b" inset="inset-3" imgClassName="transition duration-500 group-hover:scale-[1.03]" />
+                    <ArtworkFrame
+                      src={item.imageUrl}
+                      alt={item.title}
+                      className="aspect-square w-full border-b"
+                      inset="inset-3"
+                      imgClassName="transition duration-500 group-hover:scale-[1.03]"
+                    />
                     <div className="flex flex-1 flex-col p-3">
                       <p className="line-clamp-2 text-sm leading-snug font-medium">{item.title}</p>
                       <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">
                         {[item.artist, item.date].filter(Boolean).join(', ') || item.culture || item.department}
                       </p>
-                      <p className={cn('label-mono mt-auto pt-3', isSelected ? 'text-signal' : 'text-muted-foreground group-hover:text-foreground')}>
+                      <p
+                        className={cn(
+                          'label-mono mt-auto pt-3',
+                          isSelected ? 'text-signal' : 'text-muted-foreground group-hover:text-foreground',
+                        )}
+                      >
                         {isSelected ? 'Selecionada' : 'Selecionar'}
                       </p>
                     </div>
@@ -282,13 +342,25 @@ export function NewLotPage() {
             </div>
             {totalPages > 1 && (
               <div className="flex items-center justify-center gap-3">
-                <Button variant="outline" size="icon-lg" disabled={result.page <= 1 || searching} onClick={() => search(query, result.page - 1)} aria-label="Página anterior">
+                <Button
+                  variant="outline"
+                  size="icon-lg"
+                  disabled={result.page <= 1 || searching}
+                  onClick={() => search(query, result.page - 1)}
+                  aria-label="Página anterior"
+                >
                   <ChevronLeft />
                 </Button>
                 <span className="font-mono text-xs text-muted-foreground">
                   {result.page} / {totalPages}
                 </span>
-                <Button variant="outline" size="icon-lg" disabled={result.page >= totalPages || searching} onClick={() => search(query, result.page + 1)} aria-label="Próxima página">
+                <Button
+                  variant="outline"
+                  size="icon-lg"
+                  disabled={result.page >= totalPages || searching}
+                  onClick={() => search(query, result.page + 1)}
+                  aria-label="Próxima página"
+                >
                   <ChevronRight />
                 </Button>
               </div>

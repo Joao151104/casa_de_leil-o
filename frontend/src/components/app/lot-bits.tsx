@@ -40,7 +40,11 @@ export function Countdown({ lot, className }: { lot: Lot; className?: string }) 
   if (phase === 'ended') return <span className={cn('font-mono text-muted-foreground', className)}>Encerrado</span>;
   const remaining = new Date(phase === 'scheduled' ? lot.startsAt : lot.endsAt).getTime() - now;
   const urgent = phase === 'live' && remaining < 2 * 60 * 1000;
-  return <span className={cn('font-mono tabular-nums', urgent && 'text-signal', className)}>{formatCountdown(remaining)}</span>;
+  return (
+    <span className={cn('font-mono tabular-nums', urgent && 'text-signal', className)}>
+      {formatCountdown(remaining)}
+    </span>
+  );
 }
 
 export function LotImage({ src, alt, className }: { src: string | null; alt: string; className?: string }) {
@@ -53,7 +57,9 @@ export function LotImage({ src, alt, className }: { src: string | null; alt: str
       </div>
     );
   }
-  return <img src={src} alt={alt} loading="lazy" onError={() => setFailed(true)} className={cn('object-cover', className)} />;
+  return (
+    <img src={src} alt={alt} loading="lazy" onError={() => setFailed(true)} className={cn('object-cover', className)} />
+  );
 }
 
 /**
@@ -93,14 +99,26 @@ export function ArtworkFrame({
 export function MoneyField({ className, ...props }: React.ComponentProps<typeof Input>) {
   return (
     <div className="relative">
-      <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 font-mono text-sm text-muted-foreground">R$</span>
+      <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 font-mono text-sm text-muted-foreground">
+        R$
+      </span>
       <Input inputMode="decimal" className={cn('h-10 pl-10 font-mono tabular-nums', className)} {...props} />
     </div>
   );
 }
 
 /** Rótulo + valor em mono (preços, saldos). */
-export function Figure({ label, value, className, valueClassName }: { label: string; value: React.ReactNode; className?: string; valueClassName?: string }) {
+export function Figure({
+  label,
+  value,
+  className,
+  valueClassName,
+}: {
+  label: string;
+  value: React.ReactNode;
+  className?: string;
+  valueClassName?: string;
+}) {
   return (
     <div className={className}>
       <p className="label-mono text-muted-foreground">{label}</p>

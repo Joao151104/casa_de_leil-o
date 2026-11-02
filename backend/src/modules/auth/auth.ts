@@ -10,15 +10,6 @@ export interface AuthUser {
   role: Role;
 }
 
-declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
-  namespace Express {
-    interface Request {
-      user?: AuthUser;
-    }
-  }
-}
-
 export const signToken = (user: AuthUser) =>
   jwt.sign({ name: user.name, role: user.role }, config.jwtSecret, { subject: user.id, expiresIn: '7d' });
 

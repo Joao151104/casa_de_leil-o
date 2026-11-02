@@ -38,10 +38,7 @@ authRouter.post('/register', async (req, res) => {
 
 authRouter.post('/login', async (req, res) => {
   const input = parse(loginSchema, req.body);
-  const { rows } = await pool.query(
-    'SELECT id, name, role, password_hash FROM users WHERE email = $1',
-    [input.email],
-  );
+  const { rows } = await pool.query('SELECT id, name, role, password_hash FROM users WHERE email = $1', [input.email]);
   const row = rows[0];
   if (!row || !(await bcrypt.compare(input.password, row.password_hash))) {
     throw new AppError(401, 'INVALID_CREDENTIALS', 'E-mail ou senha incorretos.');

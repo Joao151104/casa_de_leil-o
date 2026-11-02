@@ -2,10 +2,19 @@ import type { Server as HttpServer } from 'node:http';
 import { Server } from 'socket.io';
 import { config } from './config.js';
 import { events } from './lib/events.js';
+import { createLogger } from './lib/logger.js';
 import { formatBRL } from './lib/money.js';
 import { verifyToken } from './modules/auth/auth.js';
 import { listPublicBids } from './modules/bids/bid.service.js';
 import { getLotDto } from './modules/lots/lot.service.js';
+
+const log = createLogger('realtime');
+
+/** Um erro ao repassar um evento não pode derrubar o processo. */
+const safe =
+  <T>(fn: (payload: T) => Promise<void>) =>
+  (payload: T) =>
+    fn(payload).catch((err) => log.error('falha ao repassar evento', err));
 
 /**
  * Salas: `lot:<id>` (quem está na sala do lote), `showcase` (vitrine) e `user:<id>`
@@ -25,7 +34,8 @@ export function attachRealtime(httpServer: HttpServer) {
     socket.on('showcase:unwatch', () => socket.leave('showcase'));
   });
 
-  const notify = (userId: string, payload: Record<string, unknown>) => io.to(`user:${userId}`).emit('notification', payload);
+  const notify = (userId: string, payload: Record<string, unknown>) =>
+    io.to(`user:${userId}`).emit('notification', payload);
 
   const broadcastLot = async (lotId: string) => {
     const lot = await getLotDto(lotId);
@@ -33,11 +43,6 @@ export function attachRealtime(httpServer: HttpServer) {
     io.to('showcase').emit('showcase:update', { lot });
     return lot;
   };
-
-  const safe =
-    <T>(fn: (payload: T) => Promise<void>) =>
-    (payload: T) =>
-      fn(payload).catch((err) => console.error('[realtime]', err));
 
   events.onEvent(
     'bid.placed',
@@ -52,13 +57,20 @@ export function attachRealtime(httpServer: HttpServer) {
       }
     }),
   );
-  events.onEvent('lot.created', safe(async ({ lotId }) => void (await broadcastLot(lotId))));
+  events.onEvent(
+    'lot.created',
+    safe(async ({ lotId }) => void (await broadcastLot(lotId))),
+  );
   events.onEvent(
     'lot.cancelled',
     safe(async ({ lotId, affectedUserIds }) => {
       const lot = await broadcastLot(lotId);
       for (const userId of affectedUserIds) {
-        notify(userId, { type: 'cancelled', lotId, message: `O lote "${lot.title}" foi cancelado. Seu saldo comprometido foi estornado.` });
+        notify(userId, {
+          type: 'cancelled',
+          lotId,
+          message: `O lote "${lot.title}" foi cancelado. Seu saldo comprometido foi estornado.`,
+        });
       }
     }),
   );
@@ -67,8 +79,16 @@ export function attachRealtime(httpServer: HttpServer) {
     safe(async ({ lotId, winnerId, sellerId }) => {
       const lot = await broadcastLot(lotId);
       if (winnerId) {
-        notify(winnerId, { type: 'won', lotId, message: `Parabéns! Você arrematou "${lot.title}" por ${formatBRL(lot.currentPriceCents!)}.` });
-        notify(sellerId, { type: 'sold', lotId, message: `"${lot.title}" foi arrematado por ${formatBRL(lot.currentPriceCents!)}.` });
+        notify(winnerId, {
+          type: 'won',
+          lotId,
+          message: `Parabéns! Você arrematou "${lot.title}" por ${formatBRL(lot.currentPriceCents!)}.`,
+        });
+        notify(sellerId, {
+          type: 'sold',
+          lotId,
+          message: `"${lot.title}" foi arrematado por ${formatBRL(lot.currentPriceCents!)}.`,
+        });
       } else {
         notify(sellerId, { type: 'unsold', lotId, message: `"${lot.title}" encerrou sem lances.` });
       }

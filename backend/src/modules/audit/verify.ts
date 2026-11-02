@@ -66,14 +66,26 @@ export function verifyLedger({ lot, bids, receipt }: LedgerInput) {
   sorted.forEach((bid, index) => {
     const expectedSeq = index + 1;
     if (bid.seq !== expectedSeq) {
-      issues.push({ seq: bid.seq, type: 'sequence', message: `Sequência quebrada: esperado o lance nº ${expectedSeq}, encontrado nº ${bid.seq} (lance removido ou inserido).` });
+      issues.push({
+        seq: bid.seq,
+        type: 'sequence',
+        message: `Sequência quebrada: esperado o lance nº ${expectedSeq}, encontrado nº ${bid.seq} (lance removido ou inserido).`,
+      });
     }
     if (bid.prevHash !== prevHash) {
-      issues.push({ seq: bid.seq, type: 'chain', message: 'O hash anterior não corresponde ao lance precedente (lance removido, inserido ou reordenado).' });
+      issues.push({
+        seq: bid.seq,
+        type: 'chain',
+        message: 'O hash anterior não corresponde ao lance precedente (lance removido, inserido ou reordenado).',
+      });
     }
     const recomputed = sha256(canonicalBid({ lotId: lot.id, ...bid }));
     if (recomputed !== bid.hash) {
-      issues.push({ seq: bid.seq, type: 'content', message: 'O conteúdo do lance foi alterado: o hash recalculado não confere.' });
+      issues.push({
+        seq: bid.seq,
+        type: 'content',
+        message: 'O conteúdo do lance foi alterado: o hash recalculado não confere.',
+      });
     }
     if (!verifySignature(bid.hash, bid.signature)) {
       issues.push({ seq: bid.seq, type: 'signature', message: 'Assinatura digital inválida para este lance.' });
@@ -94,9 +106,15 @@ export function verifyLedger({ lot, bids, receipt }: LedgerInput) {
 
   const last = sorted.at(-1) ?? null;
   if (lot.bidCount !== sorted.length || lot.headHash !== prevHash) {
-    issues.push({ type: 'head', message: `O lote registra ${lot.bidCount} lance(s), mas o histórico tem ${sorted.length} ou termina em outro hash (lance removido ou adicionado no fim).` });
+    issues.push({
+      type: 'head',
+      message: `O lote registra ${lot.bidCount} lance(s), mas o histórico tem ${sorted.length} ou termina em outro hash (lance removido ou adicionado no fim).`,
+    });
   }
-  if (lot.bidCount > 0 && (!lot.headSignature || !verifySignature(canonicalHead(lot.id, lot.bidCount, lot.headHash), lot.headSignature))) {
+  if (
+    lot.bidCount > 0 &&
+    (!lot.headSignature || !verifySignature(canonicalHead(lot.id, lot.bidCount, lot.headHash), lot.headSignature))
+  ) {
     issues.push({ type: 'head', message: 'Assinatura do estado final do lote inválida.' });
   }
   if (last && (lot.currentPriceCents !== last.amountCents || lot.leaderTag !== last.bidderTag)) {
@@ -106,7 +124,13 @@ export function verifyLedger({ lot, bids, receipt }: LedgerInput) {
   if (receipt) {
     const receiptOk = verifySignature(canonicalReceipt({ ...receipt, lotId: lot.id }), receipt.signature);
     if (!receiptOk) issues.push({ type: 'receipt', message: 'Assinatura do comprovante de arremate inválida.' });
-    if (!last || receipt.finalHash !== last.hash || receipt.amountCents !== last.amountCents || receipt.winnerTag !== last.bidderTag || receipt.bidCount !== sorted.length) {
+    if (
+      !last ||
+      receipt.finalHash !== last.hash ||
+      receipt.amountCents !== last.amountCents ||
+      receipt.winnerTag !== last.bidderTag ||
+      receipt.bidCount !== sorted.length
+    ) {
       issues.push({ type: 'receipt', message: 'O comprovante de arremate não corresponde ao histórico de lances.' });
     }
   }

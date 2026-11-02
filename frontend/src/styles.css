@@ -104,7 +104,9 @@
   html {
     @apply font-sans;
     color-scheme: light;
-    font-feature-settings: 'ss01', 'tnum' 0;
+    font-feature-settings:
+      'ss01',
+      'tnum' 0;
   }
   html.dark {
     color-scheme: dark;

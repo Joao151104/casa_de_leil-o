@@ -4,7 +4,8 @@ import { bidderTag } from '../../lib/pseudonym.js';
 import { parse } from '../../lib/validation.js';
 import { requireAuth, requireRole } from '../auth/auth.js';
 import { listPublicBids, placeBid } from '../bids/bid.service.js';
-import { cancelLot, createLot, getLotDto, listShowcase } from './lot.service.js';
+import { listShowcase } from './lot.queries.js';
+import { cancelLot, createLot, getLotDto } from './lot.service.js';
 
 const uuid = z.uuid('Lote inválido.');
 
@@ -15,7 +16,11 @@ const showcaseSchema = z.object({
 });
 
 const cents = (label: string) =>
-  z.number({ error: `Informe o ${label}.` }).int(`${label} inválido.`).min(100, `O ${label} deve ser de pelo menos R$ 1,00.`).max(100_000_000_00);
+  z
+    .number({ error: `Informe o ${label}.` })
+    .int(`${label} inválido.`)
+    .min(100, `O ${label} deve ser de pelo menos R$ 1,00.`)
+    .max(100_000_000_00);
 
 const createSchema = z.object({
   externalId: z.string().min(1, 'Selecione um item do catálogo.'),

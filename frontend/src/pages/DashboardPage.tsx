@@ -1,5 +1,5 @@
 import { Loader2, MoreHorizontal } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { EmptyState, ErrorState, Notice, PageHeader, PageLoading } from '@/components/app/feedback';
@@ -14,10 +14,17 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useApi } from '@/hooks/useApi';
 import { ApiError, api } from '@/lib/api';
 import { formatBRL, formatDateTime, lotNumber } from '@/lib/format';
 import { getSocket } from '@/lib/socket';
@@ -27,7 +34,15 @@ import type { Lot } from '@/lib/types';
 type DashboardLot = Lot & { receiptCode: string | null };
 interface Dashboard {
   lots: DashboardLot[];
-  summary: { totalReceivedCents: number; balanceCents: number; sold: number; unsold: number; live: number; scheduled: number; cancelled: number };
+  summary: {
+    totalReceivedCents: number;
+    balanceCents: number;
+    sold: number;
+    unsold: number;
+    live: number;
+    scheduled: number;
+    cancelled: number;
+  };
 }
 
 function LotResult({ lot }: { lot: DashboardLot }) {
@@ -41,39 +56,33 @@ function LotResult({ lot }: { lot: DashboardLot }) {
       <span className="text-muted-foreground">Sem lances</span>
     );
   }
-  return lot.bidCount ? <span>{formatBRL(lot.currentPriceCents)}</span> : <span className="text-muted-foreground">{formatBRL(lot.startingPriceCents)} (inicial)</span>;
+  return lot.bidCount ? (
+    <span>{formatBRL(lot.currentPriceCents)}</span>
+  ) : (
+    <span className="text-muted-foreground">{formatBRL(lot.startingPriceCents)} (inicial)</span>
+  );
 }
 
 export function DashboardPage() {
   const now = useNow();
   const navigate = useNavigate();
-  const [data, setData] = useState<Dashboard | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const { data, error, reload } = useApi<Dashboard>('/me/lots');
   const [cancelling, setCancelling] = useState<Lot | null>(null);
   const [reason, setReason] = useState('');
   const [cancelError, setCancelError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const load = useCallback(
-    () =>
-      api<Dashboard>('/me/lots')
-        .then(setData)
-        .catch((e) => setError(e.message)),
-    [],
-  );
-
   useEffect(() => {
-    load();
     const socket = getSocket();
     socket.emit('showcase:watch');
-    socket.on('showcase:update', load);
-    socket.on('notification', load);
+    socket.on('showcase:update', reload);
+    socket.on('notification', reload);
     return () => {
       socket.emit('showcase:unwatch');
-      socket.off('showcase:update', load);
-      socket.off('notification', load);
+      socket.off('showcase:update', reload);
+      socket.off('notification', reload);
     };
-  }, [load]);
+  }, [reload]);
 
   if (error) return <ErrorState message={error} />;
   if (!data) return <PageLoading />;
@@ -87,7 +96,7 @@ export function DashboardPage() {
       toast.success(cancelling.bidCount > 0 ? 'Lote cancelado e licitantes estornados' : 'Lote cancelado');
       setCancelling(null);
       setReason('');
-      load();
+      reload();
     } catch (err) {
       setCancelError((err as ApiError).message);
     } finally {
@@ -117,9 +126,19 @@ export function DashboardPage() {
       />
 
       <div className="grid grid-cols-2 border-y sm:grid-cols-3 lg:grid-cols-6">
-        <Figure label="Total recebido" value={formatBRL(s.totalReceivedCents)} className="col-span-2 py-5 sm:col-span-1 sm:pr-6" valueClassName="text-signal" />
+        <Figure
+          label="Total recebido"
+          value={formatBRL(s.totalReceivedCents)}
+          className="col-span-2 py-5 sm:col-span-1 sm:pr-6"
+          valueClassName="text-signal"
+        />
         {stats.map((st) => (
-          <Figure key={st.label} label={st.label} value={st.value} className="border-t py-5 pl-0 sm:border-t-0 sm:border-l sm:pl-6 max-sm:even:pl-0 max-sm:odd:border-l max-sm:odd:pl-4" />
+          <Figure
+            key={st.label}
+            label={st.label}
+            value={st.value}
+            className="border-t py-5 pl-0 sm:border-t-0 sm:border-l sm:pl-6 max-sm:even:pl-0 max-sm:odd:border-l max-sm:odd:pl-4"
+          />
         ))}
       </div>
 
@@ -152,7 +171,9 @@ export function DashboardPage() {
                 const cancellable = phase === 'live' || phase === 'scheduled';
                 return (
                   <TableRow key={lot.id} className="cursor-pointer" onClick={() => navigate(`/lotes/${lot.id}`)}>
-                    <TableCell className="pl-0 font-mono text-xs text-muted-foreground">{lotNumber(lot.number)}</TableCell>
+                    <TableCell className="pl-0 font-mono text-xs text-muted-foreground">
+                      {lotNumber(lot.number)}
+                    </TableCell>
                     <TableCell className="max-w-0 w-full">
                       <div className="flex items-center gap-3">
                         <LotImage src={lot.imageUrl} alt="" className="size-11 shrink-0" />
@@ -167,7 +188,11 @@ export function DashboardPage() {
                       <LotResult lot={lot} />
                     </TableCell>
                     <TableCell className="text-right font-mono text-xs">
-                      {phase === 'live' ? <Countdown lot={lot} className="text-sm" /> : <span className="text-muted-foreground">{formatDateTime(lot.endsAt)}</span>}
+                      {phase === 'live' ? (
+                        <Countdown lot={lot} className="text-sm" />
+                      ) : (
+                        <span className="text-muted-foreground">{formatDateTime(lot.endsAt)}</span>
+                      )}
                     </TableCell>
                     <TableCell className="pr-0" onClick={(e) => e.stopPropagation()}>
                       <DropdownMenu>
@@ -177,9 +202,17 @@ export function DashboardPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onSelect={() => navigate(`/lotes/${lot.id}`)}>Abrir sala do lote</DropdownMenuItem>
-                          <DropdownMenuItem onSelect={() => navigate(`/lotes/${lot.id}/auditoria`)}>Auditoria</DropdownMenuItem>
-                          {lot.receiptCode && <DropdownMenuItem onSelect={() => navigate(`/comprovante/${lot.receiptCode}`)}>Comprovante</DropdownMenuItem>}
+                          <DropdownMenuItem onSelect={() => navigate(`/lotes/${lot.id}`)}>
+                            Abrir sala do lote
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => navigate(`/lotes/${lot.id}/auditoria`)}>
+                            Auditoria
+                          </DropdownMenuItem>
+                          {lot.receiptCode && (
+                            <DropdownMenuItem onSelect={() => navigate(`/comprovante/${lot.receiptCode}`)}>
+                              Comprovante
+                            </DropdownMenuItem>
+                          )}
                           {cancellable && (
                             <>
                               <DropdownMenuSeparator />
@@ -222,7 +255,13 @@ export function DashboardPage() {
               )}
               <div className="space-y-2">
                 <Label htmlFor="reason">Motivo (opcional)</Label>
-                <Input id="reason" value={reason} onChange={(e) => setReason(e.target.value)} maxLength={300} placeholder="Ex.: peça retirada pelo consignante" />
+                <Input
+                  id="reason"
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  maxLength={300}
+                  placeholder="Ex.: peça retirada pelo consignante"
+                />
               </div>
               {cancelError && <Notice tone="danger">{cancelError}</Notice>}
               <AlertDialogFooter>
