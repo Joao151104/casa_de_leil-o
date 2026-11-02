@@ -1,4 +1,4 @@
-import { Search } from 'lucide-react';
+import { ChevronDown, Search } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { EmptyState, ErrorState, PageLoading } from '@/components/app/feedback';
@@ -31,16 +31,14 @@ interface ShowcaseData {
   lots: Lot[];
   counts: Partial<Record<Phase, number>>;
 }
-
-/** Destaque: o lote ao vivo que encerra primeiro, em formato de página de catálogo. */
-function FeaturedLot({ lot }: { lot: Lot }) {
+function FeaturedLot({ lot, othersCount, onSeeAll }: { lot: Lot; othersCount: number; onSeeAll: () => void }) {
   return (
-    <section className="mb-8 grid gap-5 border-b pb-8 sm:mb-14 sm:gap-8 sm:pb-14 lg:grid-cols-12 lg:gap-12">
+    <section className="mb-6 grid gap-5 border-b pb-6 sm:mb-8 sm:gap-8 sm:pb-8 lg:grid-cols-12 lg:gap-x-12">
       <Link to={`/lotes/${lot.id}`} className="group -mx-5 sm:mx-0 lg:col-span-7" aria-label={`Abrir ${lot.title}`}>
         <ArtworkFrame
           src={lot.imageUrl}
           alt={lot.title}
-          className="aspect-square sm:aspect-[4/3]"
+          className="aspect-square sm:aspect-[4/3] lg:aspect-auto lg:h-[min(58svh,620px)]"
           inset="inset-6 sm:inset-10 lg:inset-14"
           imgClassName="transition duration-700 ease-out group-hover:scale-[1.02]"
         />
@@ -77,6 +75,16 @@ function FeaturedLot({ lot }: { lot: Lot }) {
           </span>
         </div>
       </div>
+      {othersCount > 0 && (
+        <button
+          type="button"
+          onClick={onSeeAll}
+          className="group flex items-center justify-center gap-2 justify-self-center text-sm text-muted-foreground transition-colors hover:text-foreground lg:col-span-12"
+        >
+          Ver {othersCount === 1 ? 'o outro lote' : `os outros ${othersCount} lotes`} ao vivo
+          <ChevronDown className="size-4 animate-bounce group-hover:animate-none" />
+        </button>
+      )}
     </section>
   );
 }
@@ -153,13 +161,20 @@ export function ShowcasePage() {
       ? [...data.lots].sort((a, b) => new Date(a.endsAt).getTime() - new Date(b.endsAt).getTime())[0]
       : null;
   const grid = data ? data.lots.filter((l) => l.id !== featured?.id) : [];
+  const catalogRef = useRef<HTMLDivElement>(null);
 
   return (
     <div>
-      {featured && <FeaturedLot lot={featured} />}
+      {featured && (
+        <FeaturedLot
+          lot={featured}
+          othersCount={grid.length}
+          onSeeAll={() => catalogRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+        />
+      )}
 
       {/* Barra do catálogo: fica presa logo abaixo do cabeçalho ao rolar (abas + busca sempre à mão). */}
-      <div className="sticky top-14 z-20 -mx-5 mb-6 border-b bg-background/95 px-5 backdrop-blur-md sm:-mx-8 sm:mb-8 sm:px-8 lg:flex lg:items-end lg:justify-between lg:gap-4">
+      <div ref={catalogRef} className="sticky top-14 z-20 scroll-mt-14 -mx-5 mb-6 border-b bg-background/95 px-5 backdrop-blur-md sm:-mx-8 sm:mb-8 sm:px-8 lg:flex lg:items-end lg:justify-between lg:gap-4">
         <Tabs value={phase} onValueChange={(v) => update({ fase: v === 'live' ? '' : v })} className="overflow-x-auto">
           <TabsList variant="line" className="h-11! gap-5 p-0 sm:gap-6">
             {TABS.map((tab) => (
